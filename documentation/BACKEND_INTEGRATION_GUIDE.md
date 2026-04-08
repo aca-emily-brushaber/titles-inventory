@@ -1,0 +1,158 @@
+# Backend Integration Guide
+
+This document describes how to connect the Titles Inventory UI to a real backend by implementing the `DataProvider` interface.
+
+## Architecture Overview
+
+The UI is decoupled from any specific backend. All data access flows through `DataProvider` in `lib/data-provider.ts`. The application ships with a mock provider (`lib/providers/mock-provider.ts`) that supplies in-memory title seed data.
+
+The **titles** namespace (`titles.getAll`, `titles.getById`, comments, documents, transfers, `getByAssignmentGroup`, `updateAssignmentGroup`, `createTransfer` with `fromGroup`/`toGroup` as `AssignmentGroup`) backs the title queue and `/title/[id]` detail pages. Implement these methods when connecting to a real titles service or database. See `documentation/EXCEL_COLUMN_MAPPING.md` for the RepoTitle CSV column map and assignment group rules.
+
+```
+UI Components / Pages
+        |
+        v
+  Service Layer (lib/services/*.service.ts)
+        |
+        v
+  DataProvider Interface (lib/data-provider.ts)
+        |
+        v
+  Provider Implementation
+    - MockProvider (default, in-memory)
+    - YourProvider (implement to connect your backend)
+```
+
+## Implementing a Custom Provider
+
+### Step 1: Create Your Provider
+
+Create a new file (for example, `lib/providers/your-provider.ts`) that implements the `DataProvider` interface:
+
+```typescript
+import type { DataProvider } from '../data-provider'
+
+export const yourProvider: DataProvider = {
+  auth: { /* ... */ },
+  titles: {
+    async getAll() {
+      // Fetch from your API or database
+    },
+    // ... implement all titles methods
+  },
+  dashboard: { /* ... */ },
+  users: { /* ... */ },
+  notifications: { /* ... */ },
+  settings: { /* ... */ },
+  integrations: { /* ... */ },
+  realtime: { /* ... */ },
+}
+```
+
+### Step 2: Register Your Provider
+
+Update `lib/providers/init.ts` to use your provider instead of the mock:
+
+```typescript
+import { setProvider } from '../data-provider'
+import { yourProvider } from './your-provider'
+
+let initialized = false
+
+export function initializeProvider(): void {
+  if (initialized) return
+  setProvider(yourProvider)
+  initialized = true
+}
+
+initializeProvider()
+```
+
+### Step 3: Update Middleware (if using real auth)
+
+The middleware in `middleware.ts` currently uses a simple cookie-based mock auth check. Replace it with your authentication logic (JWT validation, session checks, etc.).
+
+## DataProvider Interface Reference
+
+### `auth`
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `getCurrentUser` | `() => Promise<AuthUser \| null>` | Returns the currently authenticated user |
+| `signIn` | `(email, password) => Promise<{ user, error }>` | Authenticates a user |
+| `signOut` | `() => Promise<void>` | Signs out the current user |
+
+### `titles`
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `getAll` | `() => Promise<TitleRow[]>` | Returns all title rows |
+| `getById` | `(id) => Promise<TitleRow \| null>` | Returns one title |
+| `assign` / `assignBulk` | Assigns analyst to title(s) |
+| `lock` / `unlock` | Title file lock for editing |
+| `getByAssignmentGroup` | `(group) => Promise<TitleRow[]>` | Filter by assignment group |
+| `updateAssignmentGroup` | Updates group and implied status |
+| `getComments` / `addComment` | Title-scoped comments |
+| `getDocuments` | `DocumentRow[]` for the title (legacy column may still be `dispute_id` in DB) |
+| `getTransfers` / `createTransfer` | Assignment group transfer history |
+
+### `dashboard`
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `getKPIs` | `() => Promise<DashboardKPI[]>` | KPI cards |
+| `getRiskDistribution` | `() => Promise<RiskDistribution>` | High/medium/low style counts |
+| `getVolumeData` | `() => Promise<VolumeDataPoint[]>` | Weekly volume |
+| `getActivityFeed` | `() => Promise<ActivityFeedItem[]>` | Recent activity (`recordId` optional link target) |
+| `logActivity` | `(analystId, name, action, recordId?) => Promise<void>` | Append activity |
+
+### `users`
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `getAll`, `getAnalysts`, `getTeamMembers` | User and team stats (`titlesAssigned`, etc.) |
+| `create`, `update`, `delete`, `emailExists` | User administration |
+
+### `notifications`
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `getByUserId`, `markAsRead`, `markAllAsRead` | Per-user notifications |
+
+### `settings`
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `get` / `save` | `AppSettings` including `max_titles_per_analyst`, `notify_on_new_title`, etc. |
+
+### `integrations`
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `getSyncLog` | Sync log entries |
+| `triggerEoscarSync` | e-Oscar stub |
+| `fetchOnBaseDocuments` | `(accountNumber, titleId?) => Promise<OnBaseImportResult>` |
+
+### `realtime`
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `subscribeToTitles` | `(callbacks) => () => void` | Subscribe to title insert/update/delete |
+
+## Type Definitions
+
+Core types are exported from `lib/data-provider.ts` (`TitleRow`, `DocumentRow`, `UserRow`, etc.). `lib/database.types.ts` retains legacy Supabase table shapes where still useful for document rows.
+
+## API Routes
+
+Stubs exist at:
+
+- `app/api/sync/eoscar/route.ts`
+- `app/api/webhooks/eoscar/route.ts`
+- `app/api/documents/onbase/route.ts`
+
+These return mock responses by default. Implement real logic as needed, or route through the DataProvider.
+
+## Mock Data
+
+The mock provider uses `lib/generated/titles-seed.json` (from `npm run generate:titles`), `lib/providers/title-mock-data.ts` for sample comments/documents/transfers, and `lib/providers/mock-data.ts` for users, notifications, sync logs, and activity feed seeds.

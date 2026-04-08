@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 100">
+  <defs>
+    <clipPath id="circleClip">
+      <circle cx="280" cy="38" r="32"/>
+    </clipPath>
+  </defs>
+
+  <!-- "American" text - white serif italic -->
+  <text x="20" y="62" font-family="'Georgia', 'Times New Roman', serif" font-style="italic" font-size="52" font-weight="400" fill="#ffffff" letter-spacing="1">American</text>
+
+  <!-- Circular emblem -->
+  <!-- Red outer circle -->
+  <circle cx="280" cy="38" r="32" fill="#C2002F"/>
+  <!-- White ring -->
+  <circle cx="280" cy="38" r="28" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+  <!-- Blue inner circle -->
+  <circle cx="280" cy="38" r="25.5" fill="#002855"/>
+
+  <!-- Star in the circle -->
+  <polygon points="280,14 286.5,28 302,28 289.5,37 294,51 280,42 266,51 270.5,37 258,28 273.5,28" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linejoin="round"/>
+
+  <!-- Stylized "A" inside star -->
+  <text x="280" y="43" font-family="'Georgia', 'Times New Roman', serif" font-style="italic" font-size="22" font-weight="700" fill="#ffffff" text-anchor="middle">A</text>
+
+  <!-- Red stripes through the star (flag element) -->
+  <g clip-path="url(#circleClip)">
+    <line x1="258" y1="30" x2="302" y2="30" stroke="#C2002F" stroke-width="2.2" opacity="0.85"/>
+    <line x1="258" y1="36" x2="302" y2="36" stroke="#C2002F" stroke-width="2.2" opacity="0.85"/>
+    <line x1="258" y1="42" x2="302" y2="42" stroke="#C2002F" stroke-width="2.2" opacity="0.85"/>
+  </g>
+
+  <!-- "CREDIT ACCEPTANCE" text below -->
+  <text x="20" y="88" font-family="'Georgia', 'Times New Roman', serif" font-size="14.5" fill="#ffffff" letter-spacing="6.5" font-weight="400">CREDIT ACCEPTANCE</text>
+</svg>
+
