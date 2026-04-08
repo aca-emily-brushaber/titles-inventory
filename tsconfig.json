@@ -30,5 +30,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "credit-dispute-app", "ID-Theft-PlatformUI"]
+  "exclude": ["node_modules"]
 }

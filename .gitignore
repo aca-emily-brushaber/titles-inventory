@@ -30,9 +30,6 @@ yarn-error.log*
 .env.local
 .env.*.local
 
-# vercel
-.vercel
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
@@ -48,9 +45,3 @@ next-env.d.ts
 .agents/
 skills-lock.json
 
-# legacy Angular app (reference only, not deployed)
-credit-dispute-app/
-
-# Supabase local
-supabase/.temp/
-supabase/.branches/

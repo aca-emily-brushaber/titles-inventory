@@ -93,7 +93,7 @@ The middleware in `middleware.ts` currently uses a simple cookie-based mock auth
 | `getByAssignmentGroup` | `(group) => Promise<TitleRow[]>` | Filter by assignment group |
 | `updateAssignmentGroup` | Updates group and implied status |
 | `getComments` / `addComment` | Title-scoped comments |
-| `getDocuments` | `DocumentRow[]` for the title (legacy column may still be `dispute_id` in DB) |
+| `getDocuments` | `DocumentRow[]` for the title (some shared row types use a generic foreign-key field name in `database.types.ts`) |
 | `getTransfers` / `createTransfer` | Assignment group transfer history |
 
 ### `dashboard`
@@ -141,7 +141,7 @@ The middleware in `middleware.ts` currently uses a simple cookie-based mock auth
 
 ## Type Definitions
 
-Core types are exported from `lib/data-provider.ts` (`TitleRow`, `DocumentRow`, `UserRow`, etc.). `lib/database.types.ts` retains legacy Supabase table shapes where still useful for document rows.
+Core types are exported from `lib/data-provider.ts` (`TitleRow`, `DocumentRow`, `UserRow`, etc.). `lib/database.types.ts` holds shared table-oriented types used across namespaces (for example document and user rows).
 
 ## API Routes
 
