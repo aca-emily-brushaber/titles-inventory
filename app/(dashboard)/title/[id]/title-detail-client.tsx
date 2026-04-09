@@ -21,7 +21,7 @@ import type { Database } from "@/lib/database.types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { DocumentViewer } from "@/components/document-viewer"
+import { TitleTextractPanel } from "@/components/title/title-textract-panel"
 import { TitleWorkflowRail } from "@/components/title/title-workflow-rail"
 import { TitleHistoryPanel } from "@/components/title/title-history-panel"
 import { TitleFieldGrid } from "@/components/title/title-field-grid"
@@ -203,7 +203,7 @@ export function TitleDetailClient({
             </div>
 
             <div id="title-documents">
-              <DocumentViewer documents={documents} />
+              <TitleTextractPanel title={title} documents={documents} />
             </div>
 
             <div id="title-actions">
@@ -212,7 +212,7 @@ export function TitleDetailClient({
                   Actions are not available on completed files.
                 </div>
               ) : (
-                <TitleActions titleId={title.id} workflowCheckedCount={workflowChecked.size} />
+                <TitleActions title={title} workflowCheckedCount={workflowChecked.size} />
               )}
             </div>
 

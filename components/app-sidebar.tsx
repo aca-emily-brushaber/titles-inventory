@@ -5,7 +5,6 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
-  IconListCheck,
   IconSettings,
   IconPalette,
   IconUserPlus,
@@ -13,7 +12,7 @@ import {
   IconLock,
 } from "@tabler/icons-react"
 
-import { NavMain } from "@/components/nav-main"
+import { NavQueueSystems } from "@/components/nav-queue-systems"
 import { NavUser } from "@/components/nav-user"
 import { ThemeSwitcher } from "@/components/theme-switcher"
 import {
@@ -37,10 +36,6 @@ import {
 } from "@/components/ui/sheet"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { getProvider } from "@/lib/data-provider"
-
-const navItems = [
-  { title: "Queue", url: "/queue", icon: IconListCheck },
-]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
@@ -88,7 +83,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
 
       <SidebarContent>
-        <NavMain items={navItems} />
+        <NavQueueSystems />
 
         <SidebarGroup className="mt-auto">
           <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 px-3 mb-1 group-data-[collapsible=icon]:hidden">

@@ -1,0 +1,1284 @@
+{
+  "generatedAt": "2026-04-09T13:58:25.663Z",
+  "sourceFile": "data/Titles Forms and Letters.xlsx",
+  "description": "Imported from workbook: Forms (state-scoped DMV/forms) and Letters (specialty letters). Column C = state; K/L/M = Notarized / Title required / Security agreement required; N = notes.",
+  "formsByState": {
+    "AL": [
+      "form-AL-1"
+    ],
+    "AK": [
+      "form-AK-2"
+    ],
+    "AR": [
+      "form-AR-3"
+    ],
+    "CA": [
+      "form-CA-4",
+      "form-CA-5"
+    ],
+    "CO": [
+      "form-CO-6"
+    ],
+    "CT": [
+      "form-CT-7",
+      "form-CT-8"
+    ],
+    "DE": [
+      "form-DE-9"
+    ],
+    "DC": [
+      "form-DC-10"
+    ],
+    "FL": [
+      "form-FL-11",
+      "form-FL-12"
+    ],
+    "GA": [
+      "form-GA-13",
+      "form-GA-14"
+    ],
+    "HI": [
+      "form-HI-15"
+    ],
+    "ID": [
+      "form-ID-16"
+    ],
+    "IL": [
+      "form-IL-17"
+    ],
+    "IN": [
+      "form-IN-18",
+      "form-IN-19"
+    ],
+    "IA": [
+      "form-IA-20"
+    ],
+    "KS": [
+      "form-KS-21"
+    ],
+    "KY": [
+      "form-KY-22"
+    ],
+    "ME": [
+      "form-ME-23"
+    ],
+    "MD": [
+      "form-MD-24"
+    ],
+    "MA": [
+      "form-MA-25"
+    ],
+    "MI": [
+      "form-MI-26",
+      "form-MI-27"
+    ],
+    "MN": [
+      "form-MN-28"
+    ],
+    "MS": [
+      "form-MS-29",
+      "form-MS-30"
+    ],
+    "MO": [
+      "form-MO-31",
+      "form-MO-32",
+      "form-MO-33"
+    ],
+    "MT": [
+      "form-MT-34",
+      "form-MT-35"
+    ],
+    "NE": [
+      "form-NE-36"
+    ],
+    "NV": [
+      "form-NV-37"
+    ],
+    "NH": [
+      "form-NH-38"
+    ],
+    "NJ": [
+      "form-NJ-39",
+      "form-NJ-40"
+    ],
+    "NM": [
+      "form-NM-41",
+      "form-NM-42",
+      "form-NM-43",
+      "form-NM-44"
+    ],
+    "NY": [
+      "form-NY-45"
+    ],
+    "NC": [
+      "form-NC-46"
+    ],
+    "ND": [
+      "form-ND-47"
+    ],
+    "OK": [
+      "form-OK-48"
+    ],
+    "OR": [
+      "form-OR-49"
+    ],
+    "PA": [
+      "form-PA-50",
+      "form-PA-51"
+    ],
+    "RI": [
+      "form-RI-52"
+    ],
+    "SC": [
+      "form-SC-53"
+    ],
+    "SD": [
+      "form-SD-54",
+      "form-SD-55",
+      "form-SD-56"
+    ],
+    "TN": [
+      "form-TN-57",
+      "form-TN-58"
+    ],
+    "TX": [
+      "form-TX-59"
+    ],
+    "UT": [
+      "form-UT-60"
+    ],
+    "VT": [
+      "form-VT-61",
+      "form-VT-62"
+    ],
+    "VA": [
+      "form-VA-63",
+      "form-VA-64"
+    ],
+    "WA": [
+      "form-WA-65"
+    ],
+    "WV": [
+      "form-WV-66",
+      "form-WV-67",
+      "form-WV-68"
+    ],
+    "WI": [
+      "form-WI-69"
+    ],
+    "WY": [
+      "form-WY-70"
+    ],
+    "ALL": [
+      "form-ALL-71"
+    ]
+  },
+  "forms": [
+    {
+      "id": "form-AL-1",
+      "state": "AL",
+      "stateName": "Alabama",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "MVT 15-1",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 2
+    },
+    {
+      "id": "form-AK-2",
+      "state": "AK",
+      "stateName": "Alaska",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "843",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 3
+    },
+    {
+      "id": "form-AR-3",
+      "state": "AR",
+      "stateName": "Arkansas",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "Affidavit of Repossession of Motor Vehicle",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "Yes",
+      "notes": "Repo affidavit in sharepoint?",
+      "sourceSheet": "Forms",
+      "sourceRow": 5
+    },
+    {
+      "id": "form-CA-4",
+      "state": "CA",
+      "stateName": "California",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "REG 119",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "Yes",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 6
+    },
+    {
+      "id": "form-CA-5",
+      "state": "CA",
+      "stateName": "California",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "Odometer Disclosure Statement",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "Yes",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 6
+    },
+    {
+      "id": "form-CO-6",
+      "state": "CO",
+      "stateName": "Colorado",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "DR-2393",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 7
+    },
+    {
+      "id": "form-CT-7",
+      "state": "CT",
+      "stateName": "Conneticut",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "H-30",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 8
+    },
+    {
+      "id": "form-CT-8",
+      "state": "CT",
+      "stateName": "Conneticut",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "Q-1",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 8
+    },
+    {
+      "id": "form-DE-9",
+      "state": "DE",
+      "stateName": "Delaware",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "MV-195",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "Yes",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 9
+    },
+    {
+      "id": "form-DC-10",
+      "state": "DC",
+      "stateName": "District of Columbia",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "Affidavit of Repossession",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "Yes - Certified",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 10
+    },
+    {
+      "id": "form-FL-11",
+      "state": "FL",
+      "stateName": "Florida",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "HSMV 82040",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 11
+    },
+    {
+      "id": "form-FL-12",
+      "state": "FL",
+      "stateName": "Florida",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "HSMV 82042",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 11
+    },
+    {
+      "id": "form-GA-13",
+      "state": "GA",
+      "stateName": "Georgia",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "T-16",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 12
+    },
+    {
+      "id": "form-GA-14",
+      "state": "GA",
+      "stateName": "Georgia",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "MV-1",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 12
+    },
+    {
+      "id": "form-HI-15",
+      "state": "HI",
+      "stateName": "Hawaii",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "Certificate of Repossession",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 13
+    },
+    {
+      "id": "form-ID-16",
+      "state": "ID",
+      "stateName": "Idaho",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "ITD 3366",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 14
+    },
+    {
+      "id": "form-IL-17",
+      "state": "IL",
+      "stateName": "Illinois",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "VSD 609.3",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 15
+    },
+    {
+      "id": "form-IN-18",
+      "state": "IN",
+      "stateName": "Indiana",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "39738",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 16
+    },
+    {
+      "id": "form-IN-19",
+      "state": "IN",
+      "stateName": "Indiana",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "Certificate of Repossession",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 16
+    },
+    {
+      "id": "form-IA-20",
+      "state": "IA",
+      "stateName": "Iowa",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "411067",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 17
+    },
+    {
+      "id": "form-KS-21",
+      "state": "KS",
+      "stateName": "Kansas",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "TR-84",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "Yes - Certified",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 18
+    },
+    {
+      "id": "form-KY-22",
+      "state": "KY",
+      "stateName": "Kentucky",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "TC 96-192",
+      "notarized": "No",
+      "titleRequired": "No",
+      "securityAgreementRequired": "Yes - Certified",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 19
+    },
+    {
+      "id": "form-ME-23",
+      "state": "ME",
+      "stateName": "Maine",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "MVT-5",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 21
+    },
+    {
+      "id": "form-MD-24",
+      "state": "MD",
+      "stateName": "Maryland",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "Notice of Security Interest Filing",
+      "notarized": "No",
+      "titleRequired": "No",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 22
+    },
+    {
+      "id": "form-MA-25",
+      "state": "MA",
+      "stateName": "Massachusetts",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "T20145",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 23
+    },
+    {
+      "id": "form-MI-26",
+      "state": "MI",
+      "stateName": "Michigan",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "TR-10",
+      "notarized": "No",
+      "titleRequired": "No",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 24
+    },
+    {
+      "id": "form-MI-27",
+      "state": "MI",
+      "stateName": "Michigan",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "TR-11L",
+      "notarized": "No",
+      "titleRequired": "No",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 24
+    },
+    {
+      "id": "form-MN-28",
+      "state": "MN",
+      "stateName": "Minnesota",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "PS2024",
+      "notarized": "No",
+      "titleRequired": "No",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 25
+    },
+    {
+      "id": "form-MS-29",
+      "state": "MS",
+      "stateName": "Mississippi",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "78-012",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "Bill of Sale",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 26
+    },
+    {
+      "id": "form-MS-30",
+      "state": "MS",
+      "stateName": "Mississippi",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "78-010",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "Bill of Sale",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 26
+    },
+    {
+      "id": "form-MO-31",
+      "state": "MO",
+      "stateName": "Missouri",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "DOR-5005 (title)",
+      "notarized": "No",
+      "titleRequired": "Yes/No",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 27
+    },
+    {
+      "id": "form-MO-32",
+      "state": "MO",
+      "stateName": "Missouri",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "DOR-4809 (no title)",
+      "notarized": "No",
+      "titleRequired": "Yes/No",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 27
+    },
+    {
+      "id": "form-MO-33",
+      "state": "MO",
+      "stateName": "Missouri",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "DOR-108 (no title)",
+      "notarized": "No",
+      "titleRequired": "Yes/No",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 27
+    },
+    {
+      "id": "form-MT-34",
+      "state": "MT",
+      "stateName": "Montana",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "MV-11",
+      "notarized": "No",
+      "titleRequired": "No",
+      "securityAgreementRequired": "Yes",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 28
+    },
+    {
+      "id": "form-MT-35",
+      "state": "MT",
+      "stateName": "Montana",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "RMV37A",
+      "notarized": "No",
+      "titleRequired": "No",
+      "securityAgreementRequired": "Yes",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 28
+    },
+    {
+      "id": "form-NE-36",
+      "state": "NE",
+      "stateName": "Nebraska",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "Affidavit of Repossession",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 29
+    },
+    {
+      "id": "form-NV-37",
+      "state": "NV",
+      "stateName": "Nevada",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "VP020",
+      "notarized": "Yes",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 30
+    },
+    {
+      "id": "form-NH-38",
+      "state": "NH",
+      "stateName": "New Hampshire",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "TDMV 16",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 31
+    },
+    {
+      "id": "form-NJ-39",
+      "state": "NJ",
+      "stateName": "New Jersey",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "OS/SS-55",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 32
+    },
+    {
+      "id": "form-NJ-40",
+      "state": "NJ",
+      "stateName": "New Jersey",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "OS/SS-57",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 32
+    },
+    {
+      "id": "form-NM-41",
+      "state": "NM",
+      "stateName": "New Mexico",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "MVD-10012",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 33
+    },
+    {
+      "id": "form-NM-42",
+      "state": "NM",
+      "stateName": "New Mexico",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "MVD-10187",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 33
+    },
+    {
+      "id": "form-NM-43",
+      "state": "NM",
+      "stateName": "New Mexico",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "MVD-10468",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 33
+    },
+    {
+      "id": "form-NM-44",
+      "state": "NM",
+      "stateName": "New Mexico",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "MVD-10009",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 33
+    },
+    {
+      "id": "form-NY-45",
+      "state": "NY",
+      "stateName": "New York",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "MV-950",
+      "notarized": "No",
+      "titleRequired": "No",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 34
+    },
+    {
+      "id": "form-NC-46",
+      "state": "NC",
+      "stateName": "North Carolina",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "MVR-3",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 35
+    },
+    {
+      "id": "form-ND-47",
+      "state": "ND",
+      "stateName": "North Dakota",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "SFN 2880",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 36
+    },
+    {
+      "id": "form-OK-48",
+      "state": "OK",
+      "stateName": "Oklahoma",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "737",
+      "notarized": "No",
+      "titleRequired": "No",
+      "securityAgreementRequired": "Yes - Certified",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 38
+    },
+    {
+      "id": "form-OR-49",
+      "state": "OR",
+      "stateName": "Oregon",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "735-263",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 39
+    },
+    {
+      "id": "form-PA-50",
+      "state": "PA",
+      "stateName": "Pennyslvania",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "MV-217",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "Yes",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 40
+    },
+    {
+      "id": "form-PA-51",
+      "state": "PA",
+      "stateName": "Pennyslvania",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "MV-217A",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "Yes",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 40
+    },
+    {
+      "id": "form-RI-52",
+      "state": "RI",
+      "stateName": "Rhode Island",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "Affidavit for Repossession",
+      "notarized": "Yes",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 41
+    },
+    {
+      "id": "form-SC-53",
+      "state": "SC",
+      "stateName": "South Carolina",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "4034",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 42
+    },
+    {
+      "id": "form-SD-54",
+      "state": "SD",
+      "stateName": "South Dakota",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "DOR-MV215",
+      "notarized": "No",
+      "titleRequired": "No",
+      "securityAgreementRequired": "Yes",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 43
+    },
+    {
+      "id": "form-SD-55",
+      "state": "SD",
+      "stateName": "South Dakota",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "Lien Instrument",
+      "notarized": "No",
+      "titleRequired": "No",
+      "securityAgreementRequired": "Yes",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 43
+    },
+    {
+      "id": "form-SD-56",
+      "state": "SD",
+      "stateName": "South Dakota",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "Affirmation of Repossession",
+      "notarized": "No",
+      "titleRequired": "No",
+      "securityAgreementRequired": "Yes",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 43
+    },
+    {
+      "id": "form-TN-57",
+      "state": "TN",
+      "stateName": "Tennessee",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "RV-F1312101",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 44
+    },
+    {
+      "id": "form-TN-58",
+      "state": "TN",
+      "stateName": "Tennessee",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "RV-F1315201",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 44
+    },
+    {
+      "id": "form-TX-59",
+      "state": "TX",
+      "stateName": "Texas",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "VTR-264",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "Yes",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 45
+    },
+    {
+      "id": "form-UT-60",
+      "state": "UT",
+      "stateName": "Utah",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "TC-569B",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 46
+    },
+    {
+      "id": "form-VT-61",
+      "state": "VT",
+      "stateName": "Vermont",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "TA-VT-11",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 47
+    },
+    {
+      "id": "form-VT-62",
+      "state": "VT",
+      "stateName": "Vermont",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "Bill of Sale",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 47
+    },
+    {
+      "id": "form-VA-63",
+      "state": "VA",
+      "stateName": "Virginia",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "VSA 98",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 48
+    },
+    {
+      "id": "form-VA-64",
+      "state": "VA",
+      "stateName": "Virginia",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "VSA 17A",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 48
+    },
+    {
+      "id": "form-WA-65",
+      "state": "WA",
+      "stateName": "Washington",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "TD-420-042",
+      "notarized": "Yes",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 49
+    },
+    {
+      "id": "form-WV-66",
+      "state": "WV",
+      "stateName": "West Virginia",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "DMV-129-TR",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 50
+    },
+    {
+      "id": "form-WV-67",
+      "state": "WV",
+      "stateName": "West Virginia",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "DMV-1-TR",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 50
+    },
+    {
+      "id": "form-WV-68",
+      "state": "WV",
+      "stateName": "West Virginia",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "Odometer Disclosure Statement",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 50
+    },
+    {
+      "id": "form-WI-69",
+      "state": "WI",
+      "stateName": "Wisconsin",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "MV2117",
+      "notarized": "No",
+      "titleRequired": "No",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 51
+    },
+    {
+      "id": "form-WY-70",
+      "state": "WY",
+      "stateName": "Wyoming",
+      "team": "Repo",
+      "process": "Title Flip - Manheim Fredericksburg",
+      "formName": "Affidavit of Repossession",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "No",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 52
+    },
+    {
+      "id": "form-ALL-71",
+      "state": "ALL",
+      "stateName": "All",
+      "team": "Repo",
+      "process": "Title Flip - PAR",
+      "formName": "PAR Request Form",
+      "notarized": "No",
+      "titleRequired": "Yes",
+      "securityAgreementRequired": "Yes",
+      "notes": "",
+      "sourceSheet": "Forms",
+      "sourceRow": 53
+    }
+  ],
+  "letters": [
+    {
+      "id": "letter-1",
+      "team": "Outbound",
+      "process": "Buyback",
+      "letterName": "Buyback Notice",
+      "recipient": "Customer",
+      "notesAlice": "",
+      "sourceSheet": "Letters",
+      "sourceRow": 2
+    },
+    {
+      "id": "letter-2",
+      "team": "Outbound",
+      "process": "Buyback",
+      "letterName": "Contract Repurchase (Title Demand)",
+      "recipient": "Dealer",
+      "notesAlice": "",
+      "sourceSheet": "Letters",
+      "sourceRow": 3
+    },
+    {
+      "id": "letter-3",
+      "team": "Outbound",
+      "process": "Paid in Full - Rescission",
+      "letterName": "Paid in Full Rescission Letter",
+      "recipient": "Customer",
+      "notesAlice": "",
+      "sourceSheet": "Letters",
+      "sourceRow": 4
+    },
+    {
+      "id": "letter-4",
+      "team": "Outbound",
+      "process": "Lien Release",
+      "letterName": "Lien Release for Repo - No Value",
+      "recipient": "Customer",
+      "notesAlice": "",
+      "sourceSheet": "Letters",
+      "sourceRow": 5
+    },
+    {
+      "id": "letter-5",
+      "team": "Outbound",
+      "process": "Lienholder Confirmation",
+      "letterName": "Lienholder Confirmation",
+      "recipient": "",
+      "notesAlice": "",
+      "sourceSheet": "Letters",
+      "sourceRow": 6
+    },
+    {
+      "id": "letter-6",
+      "team": "Outbound",
+      "process": "Name Change",
+      "letterName": "Name Change",
+      "recipient": "Courthouse",
+      "notesAlice": "",
+      "sourceSheet": "Letters",
+      "sourceRow": 7
+    },
+    {
+      "id": "letter-7",
+      "team": "Outbound",
+      "process": "Name Removal",
+      "letterName": "Name Removal",
+      "recipient": "",
+      "notesAlice": "",
+      "sourceSheet": "Letters",
+      "sourceRow": 8
+    },
+    {
+      "id": "letter-8",
+      "team": "Outbound",
+      "process": "Paid in Full/Settled",
+      "letterName": "Paid in Full/Settled (NYC)",
+      "recipient": "Customer",
+      "notesAlice": "",
+      "sourceSheet": "Letters",
+      "sourceRow": 9
+    },
+    {
+      "id": "letter-9",
+      "team": "Outbound",
+      "process": "Paid in Full/Settled",
+      "letterName": "Paid in Full (Electronic)",
+      "recipient": "Customer",
+      "notesAlice": "",
+      "sourceSheet": "Letters",
+      "sourceRow": 10
+    },
+    {
+      "id": "letter-10",
+      "team": "Outbound",
+      "process": "Paid in Full/Settled",
+      "letterName": "Paid in Full (Paper)",
+      "recipient": "Customer",
+      "notesAlice": "",
+      "sourceSheet": "Letters",
+      "sourceRow": 11
+    },
+    {
+      "id": "letter-11",
+      "team": "Outbound",
+      "process": "State Change Request",
+      "letterName": "State Change Request",
+      "recipient": "Customer",
+      "notesAlice": "",
+      "sourceSheet": "Letters",
+      "sourceRow": 12
+    }
+  ]
+}

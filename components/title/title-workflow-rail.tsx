@@ -30,10 +30,10 @@ const STEPS = [
   },
   {
     id: "docs",
-    label: "Documents",
+    label: "Title verification",
     anchor: "title-documents",
     icon: IconFile,
-    hint: "Supporting documents and images.",
+    hint: "Textract OCR — compare the scanned title to extracted fields before Actions.",
   },
   {
     id: "actions",

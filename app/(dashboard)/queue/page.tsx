@@ -43,6 +43,14 @@ import {
   ASSIGNMENT_GROUP_LABELS,
   ASSIGNMENT_GROUP_TIPS,
 } from "@/lib/titles/assignment-group-copy"
+import {
+  OUTBOUND_QUEUE_IDS,
+  OUTBOUND_QUEUE_LABELS,
+  OUTBOUND_QUEUE_TIPS,
+  slugFromOutboundQueueId,
+  outboundQueueIdFromSlug,
+  type OutboundQueueId,
+} from "@/lib/titles/outbound-queues"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -84,6 +92,8 @@ type UserRow = Database["public"]["Tables"]["users"]["Row"]
 
 type QueueFilter = "All" | AssignmentGroup | "Completed"
 
+type QueueSystem = "repossessions" | "outbound"
+
 function parseQueueParam(q: string | null): QueueFilter {
   if (!q || q === "All") return "All"
   if (q === "Completed") return "Completed"
@@ -100,6 +110,13 @@ const QUEUE_TABS: { value: QueueFilter; label: string; tip: string }[] = [
   })),
   { value: "Completed", label: "Completed", tip: "Non-open account status (if present)" },
 ]
+
+const OUTBOUND_TABS: { value: OutboundQueueId; label: string; tip: string }[] =
+  OUTBOUND_QUEUE_IDS.map((id) => ({
+    value: id,
+    label: OUTBOUND_QUEUE_LABELS[id],
+    tip: OUTBOUND_QUEUE_TIPS[id],
+  }))
 
 const STATUS_TABS = [
   { label: "All", value: "All", tip: "All statuses in this view" },
@@ -118,6 +135,12 @@ export default function QueuePage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { status: headerStatus } = useQueueToolbarFilters()
+
+  const systemParam = searchParams.get("system")
+  const outboundSlugParam = searchParams.get("outbound")
+  const queueSystem: QueueSystem =
+    systemParam === "outbound" ? "outbound" : "repossessions"
+  const activeOutboundQueue = outboundQueueIdFromSlug(outboundSlugParam)
 
   const [titles, setTitles] = useState<TitleRow[]>([])
   const [analysts, setAnalysts] = useState<UserRow[]>([])
@@ -199,6 +222,10 @@ export default function QueuePage() {
   }, [headerStatus])
 
   const filteredData = useMemo(() => {
+    if (queueSystem === "outbound") {
+      return [] as TitleRow[]
+    }
+
     let result =
       activeQueue === "Completed"
         ? titles.filter((t) => t.status === "Completed")
@@ -234,9 +261,21 @@ export default function QueuePage() {
     }
 
     return result
-  }, [titles, activeQueue, activeTab, headerStatusToDb, myTitlesOnly, currentUserName, searchQuery])
+  }, [
+    queueSystem,
+    titles,
+    activeQueue,
+    activeTab,
+    headerStatusToDb,
+    myTitlesOnly,
+    currentUserName,
+    searchQuery,
+  ])
 
   const statusCounts = useMemo(() => {
+    if (queueSystem === "outbound") {
+      return { All: 0, Pending: 0, "In Progress": 0, Hold: 0 }
+    }
     if (activeQueue === "Completed") {
       const completed = titles.filter((t) => t.status === "Completed")
       return { All: completed.length }
@@ -251,7 +290,7 @@ export default function QueuePage() {
       }
     }
     return counts
-  }, [titles, activeQueue])
+  }, [queueSystem, titles, activeQueue])
 
   const columns = useMemo<ColumnDef<TitleRow>[]>(
     () => [
@@ -419,6 +458,16 @@ export default function QueuePage() {
     [router]
   )
 
+  const goOutboundTab = useCallback(
+    (tab: OutboundQueueId) => {
+      const params = new URLSearchParams()
+      params.set("system", "outbound")
+      params.set("outbound", slugFromOutboundQueueId(tab))
+      router.replace(`/queue?${params.toString()}`, { scroll: false })
+    },
+    [router]
+  )
+
   const handleAssign = useCallback(async () => {
     if (!assignTarget || selectedCount === 0) return
     setAssigning(true)
@@ -493,13 +542,18 @@ export default function QueuePage() {
   return (
     <div className="py-6 px-4 lg:px-6 flex flex-col gap-4">
       <div>
-        <h1 className="text-lg font-semibold">Title queue</h1>
+        <h1 className="text-lg font-semibold">
+          {queueSystem === "repossessions" ? "Repossessions" : "Outbound"}
+        </h1>
         <p className="text-muted-foreground text-sm">
-          RepoTitle TitleLocation report — filter by assignment group, search by VIN, account, or auction
+          {queueSystem === "repossessions"
+            ? "RepoTitle TitleLocation report — filter by assignment group; search by VIN, account, or auction."
+            : "Separate accounts and workflows (data not connected yet)."}
         </p>
       </div>
 
-      <div className="flex gap-1 border-b border-border pb-0 flex-wrap" role="tablist" aria-label="Assignment group">
+      {queueSystem === "repossessions" && (
+      <div className="flex gap-1 border-b border-border pb-0 flex-wrap" role="tablist" aria-label="Repossessions assignment group">
         {QUEUE_TABS.map((tab) => (
           <TooltipProvider key={String(tab.value)} delayDuration={300}>
             <Tooltip>
@@ -541,8 +595,52 @@ export default function QueuePage() {
           </TooltipProvider>
         ))}
       </div>
+      )}
 
-      {activeQueue !== "Completed" && (
+      {queueSystem === "outbound" && (
+        <div className="flex gap-1 border-b border-border pb-0 flex-wrap" role="tablist" aria-label="Outbound queue">
+          {OUTBOUND_TABS.map((tab) => (
+            <TooltipProvider key={tab.value} delayDuration={300}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={activeOutboundQueue === tab.value}
+                    aria-label={`${tab.label}, 0 files`}
+                    onClick={() => {
+                      goOutboundTab(tab.value)
+                      setRowSelection({})
+                    }}
+                    className={`relative px-3 py-2 text-sm font-medium transition-colors rounded-t-md ${
+                      activeOutboundQueue === tab.value
+                        ? "text-primary bg-background border border-border border-b-transparent -mb-px"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {tab.label}
+                    <span
+                      className={`ml-1.5 rounded-full px-1.5 py-px text-[11px] font-semibold ${
+                        activeOutboundQueue === tab.value
+                          ? "bg-primary/10 text-primary"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                      aria-hidden="true"
+                    >
+                      0
+                    </span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p>{tab.tip}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ))}
+        </div>
+      )}
+
+      {queueSystem === "repossessions" && activeQueue !== "Completed" && (
         <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Status filters">
           {STATUS_TABS.map((tab) => (
             <TooltipProvider key={tab.value} delayDuration={300}>
@@ -581,6 +679,7 @@ export default function QueuePage() {
         </div>
       )}
 
+      {queueSystem === "repossessions" && (
       <div className="relative max-w-md">
         <IconSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
         <Input
@@ -601,7 +700,9 @@ export default function QueuePage() {
           </button>
         )}
       </div>
+      )}
 
+      {queueSystem === "repossessions" && (
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
           <Button
@@ -660,8 +761,9 @@ export default function QueuePage() {
           </button>
         </label>
       </div>
+      )}
 
-      {currentUserName && (
+      {queueSystem === "repossessions" && currentUserName && (
         <div className="text-sm text-muted-foreground flex items-center gap-1.5">
           <span>
             You have{" "}
@@ -725,7 +827,7 @@ export default function QueuePage() {
           </TableHeader>
 
           <TableBody>
-            {loading ? (
+            {loading && queueSystem === "repossessions" ? (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
                   Loading title queue...
@@ -735,7 +837,9 @@ export default function QueuePage() {
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
                   <span role="status" aria-live="polite">
-                    No title files match your criteria.
+                    {queueSystem === "outbound"
+                      ? "No outbound accounts yet. Data for this area will be added when your feeds are ready."
+                      : "No title files match your criteria."}
                   </span>
                 </TableCell>
               </TableRow>
