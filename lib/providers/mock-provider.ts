@@ -78,12 +78,53 @@ export const mockProvider: DataProvider = {
       return titles.filter((t) => t.assignment_group === group)
     },
     async updateAssignmentGroup(titleId: string, group: AssignmentGroup) {
+      const current = titles.find((t) => t.id === titleId)
+      if (!current || current.assignment_group === group) return
+
+      const fromGroup = current.assignment_group
       const status = DEFAULT_ASSIGNMENT_STATUS[group]
+      titleTransfers.push({
+        id: `tt-api-${Date.now()}-${titleId.slice(0, 8)}`,
+        title_id: titleId,
+        from_group: fromGroup,
+        to_group: group,
+        transferred_by: "System",
+        reason: "Assignment group updated (provider updateAssignmentGroup)",
+        created_at: new Date().toISOString(),
+      })
       titles = titles.map((t) =>
         t.id === titleId
           ? { ...t, assignment_group: group, assignment_status: status, updated_at: new Date().toISOString() }
           : t
       )
+    },
+    async updateShipping(
+      titleId: string,
+      payload: { shipping_label: string | null; shipping_location: string | null }
+    ) {
+      const labelTrim = payload.shipping_label?.trim() ?? ""
+      const locTrim = payload.shipping_location?.trim() ?? ""
+      const shipping_label = labelTrim === "" ? null : labelTrim
+      const shipping_location = locTrim === "" ? null : locTrim
+      const hasShipInfo = shipping_label !== null || shipping_location !== null
+      const now = new Date().toISOString()
+
+      titles = titles.map((t) => {
+        if (t.id !== titleId) return t
+        let shipped_at = t.shipped_at
+        if (hasShipInfo) {
+          if (!shipped_at) shipped_at = now
+        } else {
+          shipped_at = null
+        }
+        return {
+          ...t,
+          shipping_label,
+          shipping_location,
+          shipped_at,
+          updated_at: now,
+        }
+      })
     },
     async getComments(titleId: string) {
       return titleComments
@@ -110,7 +151,7 @@ export const mockProvider: DataProvider = {
     async createTransfer(transfer) {
       const toStatus = DEFAULT_ASSIGNMENT_STATUS[transfer.toGroup]
       titleTransfers.push({
-        id: `tt-${Date.now()}`,
+        id: `tt-${Date.now()}-${transfer.titleId.slice(0, 8)}`,
         title_id: transfer.titleId,
         from_group: transfer.fromGroup,
         to_group: transfer.toGroup,

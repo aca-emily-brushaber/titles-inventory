@@ -1,13 +1,8 @@
 "use client"
 
-import { useRef } from "react"
-import { initializeProvider } from "./init"
+import type { ReactNode } from "react"
+import "./init"
 
-export function ProviderInit({ children }: { children: React.ReactNode }) {
-  const initialized = useRef(false)
-  if (!initialized.current) {
-    initializeProvider()
-    initialized.current = true
-  }
+export function ProviderInit({ children }: { children: ReactNode }) {
   return <>{children}</>
 }

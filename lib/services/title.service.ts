@@ -54,3 +54,10 @@ export async function lockTitle(titleId: string): Promise<void> {
 export async function unlockTitle(titleId: string): Promise<void> {
   return getProvider().titles.unlock(titleId)
 }
+
+export async function updateTitleShipping(
+  titleId: string,
+  payload: { shipping_label: string | null; shipping_location: string | null }
+): Promise<void> {
+  return getProvider().titles.updateShipping(titleId, payload)
+}

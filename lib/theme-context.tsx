@@ -67,18 +67,23 @@ function getSystemMode(): "light" | "dark" {
     : "light"
 }
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [themeId, setThemeIdState] = useState(DEFAULT_THEME_ID)
-  const [colorMode, setColorModeState] = useState<ColorMode>("system")
-  const [systemMode, setSystemMode] = useState<"light" | "dark">("light")
+function getStoredThemeId(): string {
+  if (typeof window === "undefined") return DEFAULT_THEME_ID
+  return localStorage.getItem("theme-id") ?? DEFAULT_THEME_ID
+}
 
-  useEffect(() => {
-    const stored = localStorage.getItem("theme-id")
-    if (stored) setThemeIdState(stored)
-    const storedMode = localStorage.getItem("color-mode") as ColorMode | null
-    if (storedMode) setColorModeState(storedMode)
-    setSystemMode(getSystemMode())
-  }, [])
+function getStoredColorMode(): ColorMode {
+  if (typeof window === "undefined") return "system"
+  const stored = localStorage.getItem("color-mode")
+  return stored === "light" || stored === "dark" || stored === "system"
+    ? stored
+    : "system"
+}
+
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [themeId, setThemeIdState] = useState(getStoredThemeId)
+  const [colorMode, setColorModeState] = useState<ColorMode>(getStoredColorMode)
+  const [systemMode, setSystemMode] = useState<"light" | "dark">(getSystemMode)
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-color-scheme: dark)")

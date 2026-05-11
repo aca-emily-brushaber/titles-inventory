@@ -51,6 +51,8 @@ import {
   outboundQueueIdFromSlug,
   type OutboundQueueId,
 } from "@/lib/titles/outbound-queues"
+import { DAILY_PULL_TABS, type DailyPullFilterId } from "@/lib/titles/daily-pull-filters"
+import { ageDaysFromDate } from "@/lib/titles/age-days"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -118,12 +120,7 @@ const OUTBOUND_TABS: { value: OutboundQueueId; label: string; tip: string }[] =
     tip: OUTBOUND_QUEUE_TIPS[id],
   }))
 
-const STATUS_TABS = [
-  { label: "All", value: "All", tip: "All statuses in this view" },
-  { label: "New", value: "Pending", tip: "Pending" },
-  { label: "In review", value: "In Progress", tip: "In progress" },
-  { label: "Hold", value: "Hold", tip: "On hold" },
-] as const
+type DailyPullTabValue = "All" | DailyPullFilterId
 
 function SortIcon({ isSorted }: { isSorted: false | "asc" | "desc" }) {
   if (isSorted === "asc") return <IconArrowUp className="size-3.5" />
@@ -148,12 +145,12 @@ export default function QueuePage() {
   const [activeQueue, setActiveQueue] = useState<QueueFilter>(() =>
     parseQueueParam(searchParams.get("queue"))
   )
-  const [activeTab, setActiveTab] = useState("All")
+  const [activeTab, setActiveTab] = useState<DailyPullTabValue>("All")
   const [myTitlesOnly, setMyTitlesOnly] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [currentUserName, setCurrentUserName] = useState<string | null>(null)
 
-  const [sorting, setSorting] = useState<SortingState>([{ id: "due_date", desc: false }])
+  const [sorting, setSorting] = useState<SortingState>([{ id: "repossessed_date", desc: false }])
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
@@ -236,7 +233,7 @@ export default function QueuePage() {
     }
 
     if (activeTab !== "All") {
-      result = result.filter((t) => t.status === activeTab)
+      result = result.filter((t) => t.daily_pull_bucket === activeTab)
     }
 
     if (headerStatusToDb) {
@@ -274,7 +271,11 @@ export default function QueuePage() {
 
   const statusCounts = useMemo(() => {
     if (queueSystem === "outbound") {
-      return { All: 0, Pending: 0, "In Progress": 0, Hold: 0 }
+      const empty: Record<string, number> = { All: 0 }
+      for (const tab of DAILY_PULL_TABS) {
+        if (tab.value !== "All") empty[tab.value] = 0
+      }
+      return empty
     }
     if (activeQueue === "Completed") {
       const completed = titles.filter((t) => t.status === "Completed")
@@ -282,11 +283,11 @@ export default function QueuePage() {
     }
     const queueFiltered =
       activeQueue === "All" ? titles : titles.filter((t) => t.assignment_group === activeQueue)
-    const active = queueFiltered.filter((t) => t.status !== "Completed")
-    const counts: Record<string, number> = { All: active.length }
-    for (const tab of STATUS_TABS) {
+    const base = queueFiltered.filter((t) => t.status !== "Completed")
+    const counts: Record<string, number> = { All: base.length }
+    for (const tab of DAILY_PULL_TABS) {
       if (tab.value !== "All") {
-        counts[tab.value] = queueFiltered.filter((t) => t.status === tab.value).length
+        counts[tab.value] = base.filter((t) => t.daily_pull_bucket === tab.value).length
       }
     }
     return counts
@@ -366,14 +367,31 @@ export default function QueuePage() {
         size: 44,
       },
       {
-        accessorKey: "client_age",
+        accessorKey: "repossessed_date",
+        header: "Repossessed",
+        cell: ({ row }) => {
+          const raw = row.original.repossessed_date
+          if (!raw) return <span className="text-muted-foreground">—</span>
+          return new Date(raw).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
+        },
+        size: 108,
+      },
+      {
+        id: "age_days",
+        accessorFn: (row) => ageDaysFromDate(row.repossessed_date),
         header: "Age",
-        cell: ({ row }) =>
-          row.original.client_age != null ? (
-            String(row.original.client_age)
+        cell: ({ row }) => {
+          const n = ageDaysFromDate(row.original.repossessed_date)
+          return n != null ? (
+            String(n)
           ) : (
             <span className="text-muted-foreground">—</span>
-          ),
+          )
+        },
         size: 56,
       },
       {
@@ -382,19 +400,6 @@ export default function QueuePage() {
         cell: ({ row }) => (
           <span className="font-mono text-[10px]">{row.original.recovery_status}</span>
         ),
-      },
-      {
-        accessorKey: "due_date",
-        header: "Due",
-        cell: ({ row }) => {
-          const raw = row.original.due_date
-          if (!raw) return <span className="text-muted-foreground">--</span>
-          return new Date(raw).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })
-        },
       },
       {
         accessorKey: "assigned_to",
@@ -547,7 +552,7 @@ export default function QueuePage() {
         </h1>
         <p className="text-muted-foreground text-sm">
           {queueSystem === "repossessions"
-            ? "RepoTitle TitleLocation report — filter by assignment group; search by VIN, account, or auction."
+            ? "RepoTitle TitleLocation report — assignment group and Daily Pull report buckets; search by VIN, account, or auction."
             : "Separate accounts and workflows (data not connected yet)."}
         </p>
       </div>
@@ -641,8 +646,8 @@ export default function QueuePage() {
       )}
 
       {queueSystem === "repossessions" && activeQueue !== "Completed" && (
-        <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Status filters">
-          {STATUS_TABS.map((tab) => (
+        <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Daily Pull report filters">
+          {DAILY_PULL_TABS.map((tab) => (
             <TooltipProvider key={tab.value} delayDuration={300}>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -777,15 +782,15 @@ export default function QueuePage() {
             assigned to you
           </span>
           {(() => {
-            const pastDue = titles.filter(
-              (t) =>
-                t.assigned_to === currentUserName &&
-                t.status !== "Completed" &&
-                t.due_date &&
-                new Date(t.due_date) < new Date()
-            ).length
-            return pastDue > 0 ? (
-              <span className="text-status-red font-semibold">· {pastDue} past due</span>
+            const overSla = titles.filter((t) => {
+              if (t.assigned_to !== currentUserName || t.status === "Completed") return false
+              const days = ageDaysFromDate(t.repossessed_date)
+              return days != null && days > 30
+            }).length
+            return overSla > 0 ? (
+              <span className="text-status-red font-semibold">
+                · {overSla} over 30 days since repossession
+              </span>
             ) : null
           })()}
         </div>

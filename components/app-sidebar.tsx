@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useEffect, useState } from "react"
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -62,9 +63,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-full
             group-data-[collapsible=icon]:gap-0"
         >
-          <img
+          <Image
             src="/aca-emblem.png"
             alt="ACA"
+            width={36}
+            height={36}
             className="shrink-0 rounded-full object-contain transition-all duration-200 ease-linear
               group-data-[collapsible=icon]:!w-7 group-data-[collapsible=icon]:!h-7
               group-data-[collapsible=icon]:!min-w-7 group-data-[collapsible=icon]:!min-h-7"

@@ -69,7 +69,7 @@ data/
   RepoTitle_TitleLocation_Report.csv
 scripts/
   generate-titles-seed.mjs
-middleware.ts           # Pass-through (no auth gate)
+proxy.ts                # Pass-through request proxy (no auth gate)
 ```
 
 ## Data model (types)

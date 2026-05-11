@@ -3,6 +3,7 @@
  */
 
 import type { AssignmentGroup } from "./assignment-groups"
+import type { DailyPullFilterId } from "./daily-pull-filters"
 
 export type TitleStatus = "Pending" | "In Progress" | "Hold" | "Completed"
 
@@ -24,10 +25,17 @@ export interface TitleRow {
   assigned_to: string | null
   locked_by: string | null
   locked_at: string | null
-  due_date: string
   created_at: string
   updated_at: string
   status: TitleStatus
+  /** Titles Daily Pull Report bucket (`data/Titles Daily Pull Report.xlsx`); null if account not on any sheet */
+  daily_pull_bucket: DailyPullFilterId | null
+  /** Carrier label / tracking number when the physical title was shipped out; UI-managed until backend mapping exists */
+  shipping_label: string | null
+  /** Where the title was shipped from / to (e.g. hub, branch, or carrier facility) */
+  shipping_location: string | null
+  /** First moment shipping details were recorded (label or location); cleared when both are cleared */
+  shipped_at: string | null
 }
 
 export interface TitleTransferRow {

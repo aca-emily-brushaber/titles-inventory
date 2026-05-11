@@ -125,11 +125,11 @@ export default function UserManagementPage() {
     setDialogOpen(true)
   }
 
-  function openEditDialog(user: UserRow) {
+  const openEditDialog = useCallback((user: UserRow) => {
     setEditUser(user)
     form.reset({ name: user.name, email: user.email, role: user.role })
     setDialogOpen(true)
-  }
+  }, [form])
 
   async function onSubmit(values: UserFormValues) {
     setSubmitting(true)
@@ -250,7 +250,7 @@ export default function UserManagementPage() {
         enableSorting: false,
       },
     ],
-    []
+    [openEditDialog]
   )
 
   const table = useReactTable({

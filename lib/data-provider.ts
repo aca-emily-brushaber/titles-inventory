@@ -38,6 +38,10 @@ export interface DataProvider {
     unlock(titleId: string): Promise<void>
     getByAssignmentGroup(group: AssignmentGroup): Promise<TitleRow[]>
     updateAssignmentGroup(titleId: string, group: AssignmentGroup): Promise<void>
+    updateShipping(
+      titleId: string,
+      payload: { shipping_label: string | null; shipping_location: string | null }
+    ): Promise<void>
     getComments(titleId: string): Promise<TitleCommentRow[]>
     addComment(titleId: string, text: string, author: string): Promise<void>
     getDocuments(titleId: string): Promise<DocumentRow[]>
@@ -103,7 +107,6 @@ export function setProvider(provider: DataProvider): void {
 
 export function getProvider(): DataProvider {
   if (!_provider) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     require('./providers/init')
   }
   return _provider!

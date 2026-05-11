@@ -7,9 +7,7 @@ import {
   IconLayoutGrid,
   IconMessageCircle,
   IconClipboardList,
-  IconCircleCheck,
-  IconSquareCheck,
-  IconSquare,
+  IconTruck,
 } from "@tabler/icons-react"
 import { cn } from "@/lib/utils"
 
@@ -26,21 +24,28 @@ const STEPS = [
     label: "Title details",
     anchor: "title-fields",
     icon: IconLayoutGrid,
-    hint: "VIN, account, lienholder, and jurisdiction fields.",
+    hint: "VIN, account, assignment, and jurisdiction fields.",
+  },
+  {
+    id: "shipping",
+    label: "Shipping",
+    anchor: "title-shipping",
+    icon: IconTruck,
+    hint: "Tracking, location, and shipped timestamp for the physical title.",
   },
   {
     id: "docs",
     label: "Title verification",
     anchor: "title-documents",
     icon: IconFile,
-    hint: "Textract OCR — compare the scanned title to extracted fields before Actions.",
+    hint: "Compare the scanned title to extracted fields before Actions.",
   },
   {
     id: "actions",
     label: "Actions",
     anchor: "title-actions",
     icon: IconClipboardList,
-    hint: "Letters, release requests, and custody moves.",
+    hint: "Letters, release requests, and state-specific forms.",
   },
   {
     id: "comments",
@@ -53,25 +58,14 @@ const STEPS = [
 
 export type TitleWorkflowStepId = (typeof STEPS)[number]["id"]
 
-const CHECKABLE_STEPS = STEPS.filter((s) => s.id !== "actions")
-
 export { STEPS as TITLE_WORKFLOW_STEPS }
-export { CHECKABLE_STEPS as TITLE_CHECKABLE_STEPS }
 
 interface TitleWorkflowRailProps {
   variant?: "desktop" | "mobile"
-  checked?: Set<string>
-  onCheckedChange?: (checked: Set<string>) => void
 }
 
-export function TitleWorkflowRail({
-  variant = "desktop",
-  checked: externalChecked,
-  onCheckedChange,
-}: TitleWorkflowRailProps) {
+export function TitleWorkflowRail({ variant = "desktop" }: TitleWorkflowRailProps) {
   const [activeId, setActiveId] = useState<string>(STEPS[0].id)
-  const [internalChecked, setInternalChecked] = useState<Set<string>>(new Set())
-  const checked = externalChecked ?? internalChecked
 
   const handleScrollTo = useCallback((stepId: string, anchor: string) => {
     setActiveId(stepId)
@@ -89,21 +83,6 @@ export function TitleWorkflowRail({
     }
   }, [])
 
-  const toggleCheck = useCallback(
-    (id: string, e: React.MouseEvent) => {
-      e.stopPropagation()
-      const next = new Set(checked)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      if (onCheckedChange) {
-        onCheckedChange(next)
-      } else {
-        setInternalChecked(next)
-      }
-    },
-    [checked, onCheckedChange]
-  )
-
   useEffect(() => {
     const scrollPanel = document.getElementById("title-scroll-panel")
     if (!scrollPanel) return
@@ -112,8 +91,7 @@ export function TitleWorkflowRail({
       if (!scrollPanel) return
 
       const atBottom =
-        scrollPanel.scrollTop + scrollPanel.clientHeight >=
-        scrollPanel.scrollHeight - 100
+        scrollPanel.scrollTop + scrollPanel.clientHeight >= scrollPanel.scrollHeight - 100
 
       if (atBottom) {
         setActiveId(STEPS[STEPS.length - 1].id)
@@ -145,18 +123,14 @@ export function TitleWorkflowRail({
     }
   }, [])
 
-  const completedCount = CHECKABLE_STEPS.filter((s) => checked.has(s.id)).length
-  const totalCount = CHECKABLE_STEPS.length
-
   if (variant === "mobile") {
     return (
       <nav
-        aria-label="Title workflow"
+        aria-label="Suggested review order"
         className="flex items-center gap-0 px-2 py-2 rounded-lg border border-border bg-muted/30 overflow-x-auto sticky top-[120px] z-20"
       >
         {STEPS.map((step, i) => {
           const isActive = activeId === step.id
-          const isChecked = checked.has(step.id)
           const Icon = step.icon
 
           return (
@@ -165,50 +139,19 @@ export function TitleWorkflowRail({
                 type="button"
                 onClick={() => handleScrollTo(step.id, step.anchor)}
                 className={cn(
-                  "flex items-center gap-1 px-2 py-1.5 rounded-md text-[11px] font-medium transition-colors whitespace-nowrap",
+                  "flex items-center gap-1.5 px-2 py-1.5 rounded-md text-[11px] font-medium transition-colors whitespace-nowrap",
                   isActive && "bg-primary/10 text-primary border border-primary/20",
-                  isChecked && !isActive && "text-status-green",
-                  !isActive && !isChecked && "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                  !isActive && "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                 )}
               >
-                {isChecked && !isActive ? (
-                  <IconCircleCheck className="size-3 text-status-green" />
-                ) : (
-                  <Icon className={cn("size-3", isActive ? "text-primary" : "text-muted-foreground")} />
-                )}
+                <span className="text-[10px] font-bold text-muted-foreground tabular-nums w-4 text-center shrink-0">
+                  {i + 1}
+                </span>
+                <Icon className={cn("size-3 shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
                 <span className="hidden sm:inline">{step.label}</span>
                 <span className="sm:hidden">{step.label.split(" ").pop()}</span>
-                {step.id !== "actions" && (
-                  <span
-                    role="checkbox"
-                    aria-checked={isChecked}
-                    aria-label={isChecked ? `Unmark ${step.label}` : `Mark ${step.label} complete`}
-                    tabIndex={0}
-                    onClick={(e) => toggleCheck(step.id, e)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault()
-                        toggleCheck(step.id, e as unknown as React.MouseEvent)
-                      }
-                    }}
-                    className="ml-0.5 shrink-0 cursor-pointer"
-                  >
-                    {isChecked ? (
-                      <IconSquareCheck className="size-3.5 text-status-green" />
-                    ) : (
-                      <IconSquare className="size-3.5 text-muted-foreground/40" />
-                    )}
-                  </span>
-                )}
               </button>
-              {i < STEPS.length - 1 && (
-                <div
-                  className={cn(
-                    "w-4 h-px mx-0.5 shrink-0",
-                    isChecked ? "bg-status-green/40" : "bg-border"
-                  )}
-                />
-              )}
+              {i < STEPS.length - 1 && <div className="w-3 h-px mx-0.5 shrink-0 bg-border" />}
             </div>
           )
         })}
@@ -217,53 +160,35 @@ export function TitleWorkflowRail({
   }
 
   return (
-    <nav
-      aria-label="Title workflow"
-      className="flex flex-col gap-0.5 w-[264px] shrink-0"
-    >
-      <div className="flex items-center justify-between px-3 mb-2">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Workflow
+    <nav aria-label="Suggested review order" className="flex flex-col gap-0.5 w-[264px] shrink-0">
+      <div className="px-3 mb-2">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Review guide</p>
+        <p className="text-[10px] text-muted-foreground/90 leading-snug mt-1">
+          Jump between title review sections.
         </p>
-        <span className="text-[10px] text-muted-foreground">
-          {completedCount}/{totalCount} complete
-        </span>
       </div>
 
       {STEPS.map((step, i) => {
         const isActive = activeId === step.id
-        const isChecked = checked.has(step.id)
         const Icon = step.icon
 
         return (
           <div key={step.id} className="flex gap-0">
             <div className="flex flex-col items-center w-8 shrink-0">
+              <div className={cn("w-px flex-1 min-h-[6px]", i === 0 ? "bg-transparent" : "bg-border")} />
               <div
                 className={cn(
-                  "w-px flex-1",
-                  i === 0 ? "bg-transparent" : isChecked ? "bg-status-green/40" : "bg-border"
-                )}
-              />
-              <div
-                className={cn(
-                  "size-6 rounded-full flex items-center justify-center shrink-0 border transition-colors",
-                  isActive && !isChecked && "border-primary bg-primary/10",
-                  isChecked && "border-status-green bg-status-green/10",
-                  !isActive && !isChecked && "border-border bg-muted/30"
+                  "size-6 rounded-full flex items-center justify-center shrink-0 border text-[10px] font-bold transition-colors",
+                  isActive && "border-primary bg-primary/10 text-primary",
+                  !isActive && "border-border bg-muted/30 text-muted-foreground"
                 )}
               >
-                {isChecked ? (
-                  <IconCircleCheck className="size-3.5 text-status-green" />
-                ) : (
-                  <span className="text-[10px] font-bold text-muted-foreground">
-                    {i + 1}
-                  </span>
-                )}
+                {i + 1}
               </div>
               <div
                 className={cn(
-                  "w-px flex-1",
-                  i === STEPS.length - 1 ? "bg-transparent" : isChecked ? "bg-status-green/40" : "bg-border"
+                  "w-px flex-1 min-h-[6px]",
+                  i === STEPS.length - 1 ? "bg-transparent" : "bg-border"
                 )}
               />
             </div>
@@ -281,44 +206,22 @@ export function TitleWorkflowRail({
                 <Icon
                   className={cn(
                     "size-3.5 shrink-0",
-                    isActive ? "text-primary" : isChecked ? "text-status-green" : "text-muted-foreground"
+                    isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
                   )}
                 />
                 <span
                   className={cn(
                     "text-xs font-semibold leading-tight",
-                    isActive ? "text-primary" : isChecked ? "text-status-green" : "text-foreground"
+                    isActive ? "text-primary" : "text-foreground"
                   )}
                 >
                   {step.label}
                 </span>
-                {step.id !== "actions" && (
-                  <span
-                    role="checkbox"
-                    aria-checked={isChecked}
-                    aria-label={isChecked ? `Unmark ${step.label}` : `Mark ${step.label} complete`}
-                    tabIndex={0}
-                    onClick={(e) => toggleCheck(step.id, e)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault()
-                        toggleCheck(step.id, e as unknown as React.MouseEvent)
-                      }
-                    }}
-                    className="ml-auto shrink-0 p-0.5 rounded hover:bg-accent/60 transition-colors cursor-pointer"
-                  >
-                    {isChecked ? (
-                      <IconSquareCheck className="size-4 text-status-green" />
-                    ) : (
-                      <IconSquare className="size-4 text-muted-foreground/50 group-hover:text-muted-foreground" />
-                    )}
-                  </span>
-                )}
               </div>
               <p
                 className={cn(
-                  "text-[11px] leading-relaxed transition-colors",
-                  isActive ? "text-muted-foreground" : "text-muted-foreground/60"
+                  "text-[11px] leading-relaxed transition-colors pl-[22px]",
+                  isActive ? "text-muted-foreground" : "text-muted-foreground/70"
                 )}
               >
                 {step.hint}

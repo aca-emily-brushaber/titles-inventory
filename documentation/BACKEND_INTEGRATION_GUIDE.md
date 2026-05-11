@@ -68,9 +68,9 @@ export function initializeProvider(): void {
 initializeProvider()
 ```
 
-### Step 3: Update Middleware (if using real auth)
+### Step 3: Update Request Proxy (if using real auth)
 
-The middleware in `middleware.ts` currently uses a simple cookie-based mock auth check. Replace it with your authentication logic (JWT validation, session checks, etc.).
+The request proxy in `proxy.ts` currently passes all matching requests through without an auth gate. Replace it with your authentication logic (JWT validation, session checks, etc.) when the backend integration requires protected routes.
 
 ## DataProvider Interface Reference
 
@@ -84,6 +84,10 @@ The middleware in `middleware.ts` currently uses a simple cookie-based mock auth
 
 ### `titles`
 
+`TitleRow` includes `daily_pull_bucket` (`lib/titles/daily-pull-filters.ts`) for Repossessions queue Daily Pull filters. Populate it from your reporting pipeline or the same rules as the Titles Daily Pull workbook.
+
+`TitleRow.shipping_label`, `shipping_location`, and `shipped_at` are not sourced from the RepoTitle CSV; persist them from your shipping workflow and implement `updateShipping` on the provider.
+
 | Method | Signature | Description |
 |--------|-----------|-------------|
 | `getAll` | `() => Promise<TitleRow[]>` | Returns all title rows |
@@ -91,7 +95,8 @@ The middleware in `middleware.ts` currently uses a simple cookie-based mock auth
 | `assign` / `assignBulk` | Assigns analyst to title(s) |
 | `lock` / `unlock` | Title file lock for editing |
 | `getByAssignmentGroup` | `(group) => Promise<TitleRow[]>` | Filter by assignment group |
-| `updateAssignmentGroup` | Updates group and implied status |
+| `updateAssignmentGroup` | Updates group and implied status; the mock provider also appends a `TitleTransferRow` (System) so the move appears in History & transfers — real backends should record an equivalent audit row. |
+| `updateShipping` | `(titleId, { shipping_label, shipping_location }) => Promise<void>` | Trims strings; empty → `null`. Sets `shipped_at` to the current time the first time either field is non-empty; clears `shipped_at` when both are empty. Drives the **Title shipped** timeline event. |
 | `getComments` / `addComment` | Title-scoped comments |
 | `getDocuments` | `DocumentRow[]` for the title (some shared row types use a generic foreign-key field name in `database.types.ts`) |
 | `getTransfers` / `createTransfer` | Assignment group transfer history |
