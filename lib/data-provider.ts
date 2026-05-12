@@ -5,9 +5,15 @@ import type { AppSettings } from './services/settings.service'
 import type { OnBaseImportResult } from './services/integration.service'
 import type { TitleRow, TitleTransferRow, TitleCommentRow } from './titles/types'
 import type { AssignmentGroup } from './titles/assignment-groups'
+import type {
+  DocumentBatchRow,
+  DocumentBatchItemRow,
+  DocumentBatchWorkItem,
+} from './titles/batch-types'
 
 export type { TitleRow, TitleTransferRow, TitleCommentRow }
 export type { AssignmentGroup }
+export type { DocumentBatchRow, DocumentBatchItemRow, DocumentBatchWorkItem }
 
 export type UserRow = Database['public']['Tables']['users']['Row']
 export type DocumentRow = Database['public']['Tables']['documents']['Row']
@@ -53,6 +59,14 @@ export interface DataProvider {
       transferredBy: string
       reason: string
     }): Promise<void>
+  }
+
+  documentBatches: {
+    listBatches(): Promise<DocumentBatchRow[]>
+    getBatch(
+      batchId: string
+    ): Promise<{ batch: DocumentBatchRow; items: DocumentBatchItemRow[] } | null>
+    getBatchWorkItemsOrdered(batchId: string): Promise<DocumentBatchWorkItem[]>
   }
 
   dashboard: {

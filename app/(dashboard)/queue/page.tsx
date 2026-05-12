@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState, useCallback } from "react"
+import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import {
   useReactTable,
@@ -29,10 +30,15 @@ import {
 import { toast } from "sonner"
 
 import { getProvider } from "@/lib/data-provider"
+import {
+  getDocumentBatch,
+  getDocumentBatchWorkItemsOrdered,
+} from "@/lib/services/document-batch.service"
 import { assignTitles, transferTitleAssignmentGroup, getTitles } from "@/lib/services/title.service"
 import { getAnalysts, getCurrentUser } from "@/lib/services/user.service"
 import { useQueueToolbarFilters } from "@/lib/queue-toolbar-filters"
 import type { Database } from "@/lib/database.types"
+import type { DocumentBatchWorkItem } from "@/lib/titles/batch-types"
 import type { TitleRow } from "@/lib/titles/types"
 import {
   ASSIGNMENT_GROUPS,
@@ -41,7 +47,6 @@ import {
 } from "@/lib/titles/assignment-groups"
 import {
   ASSIGNMENT_GROUP_LABELS,
-  ASSIGNMENT_GROUP_TIPS,
 } from "@/lib/titles/assignment-group-copy"
 import {
   OUTBOUND_QUEUE_IDS,
@@ -51,7 +56,14 @@ import {
   outboundQueueIdFromSlug,
   type OutboundQueueId,
 } from "@/lib/titles/outbound-queues"
-import { DAILY_PULL_TABS, type DailyPullFilterId } from "@/lib/titles/daily-pull-filters"
+import {
+  REPO_ACTION_QUEUE_IDS,
+  REPO_HOLD_QUEUE_IDS,
+  type RepoQueueId,
+  deriveHoldReasonDisplay,
+  deriveRepoQueue,
+} from "@/lib/titles/repo-queues"
+import { REPO_QUEUE_LABELS, REPO_QUEUE_TIPS } from "@/lib/titles/repo-queue-copy"
 import { ageDaysFromDate } from "@/lib/titles/age-days"
 
 import { Badge } from "@/components/ui/badge"
@@ -92,26 +104,46 @@ import { Label } from "@/components/ui/label"
 
 type UserRow = Database["public"]["Tables"]["users"]["Row"]
 
-type QueueFilter = "All" | AssignmentGroup | "Completed"
+/** Repossessions primary navigation: derived repo queues + All + Completed. */
+type RepoNavFilter = "All" | RepoQueueId | "Completed"
 
-type QueueSystem = "repossessions" | "outbound"
+type QueueSystem = "repossessions" | "outbound" | "batch"
 
-function parseQueueParam(q: string | null): QueueFilter {
-  if (!q || q === "All") return "All"
-  if (q === "Completed") return "Completed"
-  if ((ASSIGNMENT_GROUPS as readonly string[]).includes(q)) return q as AssignmentGroup
-  return "All"
+type QueueTableRow = TitleRow | DocumentBatchWorkItem
+
+function isBatchWorkItem(row: QueueTableRow): row is DocumentBatchWorkItem {
+  return typeof (row as DocumentBatchWorkItem).sequence === "number" && "title_id" in (row as DocumentBatchWorkItem)
 }
 
-const QUEUE_TABS: { value: QueueFilter; label: string; tip: string }[] = [
-  { value: "All", label: "All", tip: "All active title records from RepoTitle report" },
-  ...ASSIGNMENT_GROUPS.map((g) => ({
-    value: g as QueueFilter,
-    label: ASSIGNMENT_GROUP_LABELS[g],
-    tip: ASSIGNMENT_GROUP_TIPS[g],
-  })),
-  { value: "Completed", label: "Completed", tip: "Non-open account status (if present)" },
-]
+function queueTableRowKey(row: QueueTableRow): string {
+  if (isBatchWorkItem(row)) {
+    return row.title?.id ?? `missing-${row.sequence}-${row.title_id}`
+  }
+  return row.id
+}
+
+function titleIdsFromSelectedRows(rows: { original: QueueTableRow }[]): string[] {
+  const ids: string[] = []
+  for (const r of rows) {
+    const o = r.original
+    if (isBatchWorkItem(o)) {
+      if (o.title) ids.push(o.title.id)
+    } else {
+      ids.push(o.id)
+    }
+  }
+  return ids
+}
+
+const REPO_ACTION_NAV: RepoQueueId[] = [...REPO_ACTION_QUEUE_IDS, "Other"]
+
+function parseQueueParam(q: string | null): RepoNavFilter {
+  if (!q || q === "All") return "All"
+  if (q === "Completed") return "Completed"
+  if ((REPO_ACTION_NAV as readonly string[]).includes(q)) return q as RepoQueueId
+  if ((REPO_HOLD_QUEUE_IDS as readonly string[]).includes(q)) return q as RepoQueueId
+  return "All"
+}
 
 const OUTBOUND_TABS: { value: OutboundQueueId; label: string; tip: string }[] =
   OUTBOUND_QUEUE_IDS.map((id) => ({
@@ -119,8 +151,6 @@ const OUTBOUND_TABS: { value: OutboundQueueId; label: string; tip: string }[] =
     label: OUTBOUND_QUEUE_LABELS[id],
     tip: OUTBOUND_QUEUE_TIPS[id],
   }))
-
-type DailyPullTabValue = "All" | DailyPullFilterId
 
 function SortIcon({ isSorted }: { isSorted: false | "asc" | "desc" }) {
   if (isSorted === "asc") return <IconArrowUp className="size-3.5" />
@@ -135,17 +165,17 @@ export default function QueuePage() {
 
   const systemParam = searchParams.get("system")
   const outboundSlugParam = searchParams.get("outbound")
+  const batchIdParam = searchParams.get("batch")
   const queueSystem: QueueSystem =
-    systemParam === "outbound" ? "outbound" : "repossessions"
+    systemParam === "outbound" ? "outbound" : systemParam === "batch" ? "batch" : "repossessions"
   const activeOutboundQueue = outboundQueueIdFromSlug(outboundSlugParam)
 
   const [titles, setTitles] = useState<TitleRow[]>([])
   const [analysts, setAnalysts] = useState<UserRow[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeQueue, setActiveQueue] = useState<QueueFilter>(() =>
+  const [activeQueue, setActiveQueue] = useState<RepoNavFilter>(() =>
     parseQueueParam(searchParams.get("queue"))
   )
-  const [activeTab, setActiveTab] = useState<DailyPullTabValue>("All")
   const [myTitlesOnly, setMyTitlesOnly] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [currentUserName, setCurrentUserName] = useState<string | null>(null)
@@ -162,6 +192,10 @@ export default function QueuePage() {
   const allGroupOptions: AssignmentGroup[] = [...ASSIGNMENT_GROUPS]
   const [transferReason, setTransferReason] = useState("")
   const [transferring, setTransferring] = useState(false)
+
+  const [batchWorkItems, setBatchWorkItems] = useState<DocumentBatchWorkItem[]>([])
+  const [batchMeta, setBatchMeta] = useState<{ id: string; external_batch_id: string } | null>(null)
+  const [batchLoading, setBatchLoading] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -193,18 +227,67 @@ export default function QueuePage() {
     return unsubscribe
   }, [])
 
+  useEffect(() => {
+    if (queueSystem !== "batch") {
+      setBatchWorkItems([])
+      setBatchMeta(null)
+      setBatchLoading(false)
+      return
+    }
+    if (!batchIdParam?.trim()) {
+      toast.error("Select a batch from Document batches.")
+      router.replace("/batches")
+      return
+    }
+    let cancelled = false
+    setBatchLoading(true)
+    ;(async () => {
+      try {
+        const [detail, ordered] = await Promise.all([
+          getDocumentBatch(batchIdParam.trim()),
+          getDocumentBatchWorkItemsOrdered(batchIdParam.trim()),
+        ])
+        if (cancelled) return
+        if (!detail) {
+          toast.error("Batch not found")
+          router.replace("/batches")
+          return
+        }
+        setBatchMeta({ id: detail.batch.id, external_batch_id: detail.batch.external_batch_id })
+        setBatchWorkItems(ordered)
+      } catch {
+        if (!cancelled) toast.error("Failed to load batch queue")
+      } finally {
+        if (!cancelled) setBatchLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [queueSystem, batchIdParam, titles, router])
+
+  useEffect(() => {
+    if (queueSystem === "batch") {
+      setSorting([{ id: "sequence", desc: false }])
+    } else if (queueSystem === "repossessions") {
+      setSorting([{ id: "repossessed_date", desc: false }])
+    }
+  }, [queueSystem])
+
   const queueCounts = useMemo(() => {
     const counts: Record<string, number> = { All: 0, Completed: 0 }
-    for (const g of ASSIGNMENT_GROUPS) counts[g] = 0
+    for (const id of REPO_ACTION_NAV) counts[id] = 0
+    for (const id of REPO_HOLD_QUEUE_IDS) counts[id] = 0
     for (const t of titles) {
       if (t.status === "Completed") {
         counts.Completed++
       } else {
         counts.All++
-        counts[t.assignment_group] = (counts[t.assignment_group] ?? 0) + 1
+        const q = deriveRepoQueue(t)
+        counts[q] = (counts[q] ?? 0) + 1
       }
     }
-    return counts as Record<QueueFilter, number>
+    return counts
   }, [titles])
 
   const headerStatusToDb = useMemo(() => {
@@ -219,7 +302,7 @@ export default function QueuePage() {
   }, [headerStatus])
 
   const filteredData = useMemo(() => {
-    if (queueSystem === "outbound") {
+    if (queueSystem === "outbound" || queueSystem === "batch") {
       return [] as TitleRow[]
     }
 
@@ -229,11 +312,7 @@ export default function QueuePage() {
         : titles.filter((t) => t.status !== "Completed")
 
     if (activeQueue !== "All" && activeQueue !== "Completed") {
-      result = result.filter((t) => t.assignment_group === activeQueue)
-    }
-
-    if (activeTab !== "All") {
-      result = result.filter((t) => t.daily_pull_bucket === activeTab)
+      result = result.filter((t) => deriveRepoQueue(t) === activeQueue)
     }
 
     if (headerStatusToDb) {
@@ -258,42 +337,14 @@ export default function QueuePage() {
     }
 
     return result
-  }, [
-    queueSystem,
-    titles,
-    activeQueue,
-    activeTab,
-    headerStatusToDb,
-    myTitlesOnly,
-    currentUserName,
-    searchQuery,
-  ])
+  }, [queueSystem, titles, activeQueue, headerStatusToDb, myTitlesOnly, currentUserName, searchQuery])
 
-  const statusCounts = useMemo(() => {
-    if (queueSystem === "outbound") {
-      const empty: Record<string, number> = { All: 0 }
-      for (const tab of DAILY_PULL_TABS) {
-        if (tab.value !== "All") empty[tab.value] = 0
-      }
-      return empty
-    }
-    if (activeQueue === "Completed") {
-      const completed = titles.filter((t) => t.status === "Completed")
-      return { All: completed.length }
-    }
-    const queueFiltered =
-      activeQueue === "All" ? titles : titles.filter((t) => t.assignment_group === activeQueue)
-    const base = queueFiltered.filter((t) => t.status !== "Completed")
-    const counts: Record<string, number> = { All: base.length }
-    for (const tab of DAILY_PULL_TABS) {
-      if (tab.value !== "All") {
-        counts[tab.value] = base.filter((t) => t.daily_pull_bucket === tab.value).length
-      }
-    }
-    return counts
-  }, [queueSystem, titles, activeQueue])
+  const tableData = useMemo((): QueueTableRow[] => {
+    if (queueSystem === "batch") return batchWorkItems
+    return filteredData
+  }, [queueSystem, batchWorkItems, filteredData])
 
-  const columns = useMemo<ColumnDef<TitleRow>[]>(
+  const repoColumns = useMemo<ColumnDef<TitleRow>[]>(
     () => [
       {
         id: "select",
@@ -351,6 +402,28 @@ export default function QueuePage() {
             {row.original.assignment_status}
           </span>
         ),
+      },
+      {
+        id: "repo_queue",
+        accessorFn: (row) => deriveRepoQueue(row),
+        header: "Repo queue",
+        cell: ({ row }) => (
+          <span className="text-xs font-medium">{REPO_QUEUE_LABELS[deriveRepoQueue(row.original)]}</span>
+        ),
+        size: 96,
+      },
+      {
+        id: "hold_reason",
+        header: "Hold reason",
+        cell: ({ row }) =>
+          row.original.status === "Hold" ? (
+            <span className="max-w-[180px] truncate text-xs" title={deriveHoldReasonDisplay(row.original)}>
+              {deriveHoldReasonDisplay(row.original)}
+            </span>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          ),
+        size: 120,
       },
       {
         accessorKey: "title_location",
@@ -437,8 +510,233 @@ export default function QueuePage() {
     []
   )
 
+  const batchColumns = useMemo<ColumnDef<DocumentBatchWorkItem>[]>(
+    () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) =>
+          row.original.title ? (
+            <Checkbox
+              checked={row.getIsSelected()}
+              onCheckedChange={(value) => row.toggleSelected(!!value)}
+              onClick={(e) => e.stopPropagation()}
+              aria-label="Select row"
+            />
+          ) : (
+            <span className="inline-block w-4" aria-hidden />
+          ),
+        enableSorting: false,
+        size: 40,
+      },
+      {
+        accessorKey: "sequence",
+        header: "#",
+        cell: ({ row }) => (
+          <span className="tabular-nums text-muted-foreground">{row.original.sequence}</span>
+        ),
+        size: 44,
+      },
+      {
+        id: "account_number",
+        accessorFn: (r) => r.title?.account_number ?? "",
+        header: "Account",
+        cell: ({ row }) =>
+          row.original.title ? (
+            <span className="font-semibold text-primary">{row.original.title.account_number}</span>
+          ) : (
+            <span className="text-destructive text-xs">Not in inventory</span>
+          ),
+        enableSorting: false,
+        size: 90,
+      },
+      {
+        id: "auction_name",
+        accessorFn: (r) => r.title?.auction_name ?? "",
+        header: "Auction",
+        cell: ({ row }) =>
+          row.original.title ? (
+            <span
+              className="max-w-[140px] truncate block text-xs"
+              title={row.original.title.auction_name}
+            >
+              {row.original.title.auction_name}
+            </span>
+          ) : (
+            <span className="font-mono text-[10px] text-muted-foreground">{row.original.title_id}</span>
+          ),
+        enableSorting: false,
+      },
+      {
+        id: "vin",
+        accessorFn: (r) => r.title?.vin ?? "",
+        header: "VIN",
+        cell: ({ row }) => (
+          <span className="font-mono text-[11px]">{row.original.title?.vin ?? "—"}</span>
+        ),
+        enableSorting: false,
+      },
+      {
+        id: "assignment_status",
+        accessorFn: (r) => r.title?.assignment_status ?? "",
+        header: "Assignment",
+        cell: ({ row }) =>
+          row.original.title ? (
+            <span
+              className="max-w-[160px] truncate text-xs"
+              title={row.original.title.assignment_status}
+            >
+              {row.original.title.assignment_status}
+            </span>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          ),
+        enableSorting: false,
+      },
+      {
+        id: "repo_queue",
+        accessorFn: (r) => (r.title ? deriveRepoQueue(r.title) : ""),
+        header: "Repo queue",
+        cell: ({ row }) =>
+          row.original.title ? (
+            <span className="text-xs font-medium">
+              {REPO_QUEUE_LABELS[deriveRepoQueue(row.original.title)]}
+            </span>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          ),
+        enableSorting: false,
+        size: 96,
+      },
+      {
+        id: "hold_reason",
+        header: "Hold reason",
+        cell: ({ row }) =>
+          row.original.title?.status === "Hold" ? (
+            <span
+              className="max-w-[180px] truncate text-xs"
+              title={deriveHoldReasonDisplay(row.original.title)}
+            >
+              {deriveHoldReasonDisplay(row.original.title)}
+            </span>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          ),
+        enableSorting: false,
+        size: 120,
+      },
+      {
+        id: "title_location",
+        accessorFn: (r) => r.title?.title_location ?? "",
+        header: "Title loc.",
+        cell: ({ row }) => (
+          <span className="font-mono text-[11px]">{row.original.title?.title_location ?? "—"}</span>
+        ),
+        enableSorting: false,
+        size: 96,
+      },
+      {
+        id: "title_state",
+        accessorFn: (r) => r.title?.title_state ?? "",
+        header: "ST",
+        cell: ({ row }) => row.original.title?.title_state || "—",
+        enableSorting: false,
+        size: 44,
+      },
+      {
+        id: "repossessed_date",
+        accessorFn: (r) => r.title?.repossessed_date ?? "",
+        header: "Repossessed",
+        cell: ({ row }) => {
+          const raw = row.original.title?.repossessed_date
+          if (!raw) return <span className="text-muted-foreground">—</span>
+          return new Date(raw).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
+        },
+        enableSorting: false,
+        size: 108,
+      },
+      {
+        id: "age_days",
+        accessorFn: (r) => ageDaysFromDate(r.title?.repossessed_date ?? null),
+        header: "Age",
+        cell: ({ row }) => {
+          const n = ageDaysFromDate(row.original.title?.repossessed_date ?? null)
+          return n != null ? String(n) : <span className="text-muted-foreground">—</span>
+        },
+        enableSorting: false,
+        size: 56,
+      },
+      {
+        id: "recovery_status",
+        accessorFn: (r) => r.title?.recovery_status ?? "",
+        header: "Recovery",
+        cell: ({ row }) => (
+          <span className="font-mono text-[10px]">{row.original.title?.recovery_status ?? "—"}</span>
+        ),
+        enableSorting: false,
+      },
+      {
+        id: "assigned_to",
+        accessorFn: (r) => r.title?.assigned_to ?? "",
+        header: "Assigned",
+        cell: ({ row }) => {
+          const t = row.original.title
+          if (!t) return <span className="text-muted-foreground">—</span>
+          return (
+            <span className="flex items-center justify-between gap-2">
+              <span
+                className={
+                  t.assigned_to ? "text-sm font-medium" : "text-sm italic text-muted-foreground"
+                }
+              >
+                {t.assigned_to ?? "Unassigned"}
+              </span>
+              {t.locked_by ? (
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <IconLock className="size-3.5 shrink-0 text-destructive cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="left">
+                      <p>Locked by {t.locked_by}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <IconLockOpen className="size-3.5 shrink-0 text-muted-foreground" />
+              )}
+            </span>
+          )
+        },
+        enableSorting: false,
+      },
+    ],
+    []
+  )
+
+  const columns = useMemo(
+    () =>
+      (queueSystem === "batch"
+        ? batchColumns
+        : repoColumns) as ColumnDef<QueueTableRow>[],
+    [queueSystem, batchColumns, repoColumns]
+  )
+
   const table = useReactTable({
-    data: filteredData,
+    data: tableData,
     columns,
     state: { sorting, rowSelection },
     onSortingChange: setSorting,
@@ -447,7 +745,7 @@ export default function QueuePage() {
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getRowId: (row) => row.id,
+    getRowId: (row) => queueTableRowKey(row),
     initialState: {
       pagination: { pageSize: 15 },
     },
@@ -457,8 +755,16 @@ export default function QueuePage() {
   const selectedCount = selectedRows.length
 
   const handleRowClick = useCallback(
-    (titleId: string) => {
-      router.push(`/title/${titleId}`)
+    (row: QueueTableRow) => {
+      if (isBatchWorkItem(row)) {
+        if (!row.title) {
+          toast.error("This scan slot has no matching title file in inventory.")
+          return
+        }
+        router.push(`/title/${row.title.id}`)
+        return
+      }
+      router.push(`/title/${row.id}`)
     },
     [router]
   )
@@ -475,9 +781,13 @@ export default function QueuePage() {
 
   const handleAssign = useCallback(async () => {
     if (!assignTarget || selectedCount === 0) return
+    const ids = titleIdsFromSelectedRows(selectedRows)
+    if (ids.length === 0) {
+      toast.error("Select at least one row that has a title file in inventory.")
+      return
+    }
     setAssigning(true)
     try {
-      const ids = selectedRows.map((r) => r.original.id)
       await assignTitles(ids, assignTarget)
 
       setTitles((prev) =>
@@ -497,12 +807,21 @@ export default function QueuePage() {
 
   const handleTransfer = useCallback(async () => {
     if (!transferTarget || !transferReason.trim() || selectedCount === 0 || !currentUserName) return
+    const titleRows: TitleRow[] = selectedRows
+      .map((r) => r.original)
+      .flatMap((o) => {
+        if (isBatchWorkItem(o)) return o.title ? [o.title] : []
+        return [o]
+      })
+    if (titleRows.length === 0) {
+      toast.error("Select at least one row that has a title file in inventory.")
+      return
+    }
     setTransferring(true)
     try {
-      const rows = selectedRows.map((r) => r.original)
       const toGroup = transferTarget as AssignmentGroup
       const toStatus = DEFAULT_ASSIGNMENT_STATUS[toGroup]
-      for (const row of rows) {
+      for (const row of titleRows) {
         const fromGroup = row.assignment_group
         await transferTitleAssignmentGroup(
           row.id,
@@ -512,7 +831,7 @@ export default function QueuePage() {
           transferReason.trim()
         )
       }
-      const ids = rows.map((r) => r.id)
+      const ids = titleRows.map((r) => r.id)
 
       setTitles((prev) =>
         prev.map((t) =>
@@ -546,60 +865,189 @@ export default function QueuePage() {
 
   return (
     <div className="py-6 px-4 lg:px-6 flex flex-col gap-4">
+      {queueSystem === "batch" && batchMeta && (
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/batches/${batchMeta.id}`}>Back to batch</Link>
+          </Button>
+        </div>
+      )}
       <div>
         <h1 className="text-lg font-semibold">
-          {queueSystem === "repossessions" ? "Repossessions" : "Outbound"}
+          {queueSystem === "repossessions"
+            ? "Repossessions"
+            : queueSystem === "outbound"
+              ? "Outbound"
+              : "Document batch queue"}
         </h1>
         <p className="text-muted-foreground text-sm">
           {queueSystem === "repossessions"
-            ? "RepoTitle TitleLocation report — assignment group and Daily Pull report buckets; search by VIN, account, or auction."
-            : "Separate accounts and workflows (data not connected yet)."}
+            ? "RepoTitle TitleLocation report — action and hold queues are derived from title state, Daily Pull bucket, auction, and received date. Search by VIN, account, or auction."
+            : queueSystem === "outbound"
+              ? "Separate accounts and workflows (data not connected yet)."
+              : batchMeta
+                ? `${batchMeta.external_batch_id} — work title files in physical scan order (${batchWorkItems.length} slot${batchWorkItems.length !== 1 ? "s" : ""}). Repo queue tabs are hidden for this view.`
+                : "Loading batch…"}
         </p>
       </div>
 
       {queueSystem === "repossessions" && (
-      <div className="flex gap-1 border-b border-border pb-0 flex-wrap" role="tablist" aria-label="Repossessions assignment group">
-        {QUEUE_TABS.map((tab) => (
-          <TooltipProvider key={String(tab.value)} delayDuration={300}>
+        <nav
+          className="flex flex-wrap items-end gap-x-2 gap-y-2 border-b border-border pb-2"
+          aria-label="Repossessions queues"
+        >
+          <TooltipProvider delayDuration={300}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
-                  role="tab"
-                  aria-selected={activeQueue === tab.value}
-                  aria-label={`${tab.label}, ${queueCounts[tab.value] ?? 0} files`}
+                  type="button"
+                  aria-current={activeQueue === "All" ? "page" : undefined}
+                  aria-label={`All open files, ${queueCounts.All ?? 0}`}
                   onClick={() => {
-                    setActiveQueue(tab.value)
-                    setActiveTab("All")
+                    setActiveQueue("All")
                     setRowSelection({})
                   }}
-                  className={`relative px-3 py-2 text-sm font-medium transition-colors rounded-t-md ${
-                    activeQueue === tab.value
-                      ? "text-primary bg-background border border-border border-b-transparent -mb-px"
+                  className={`relative rounded-t-md border border-transparent px-3 py-2 text-sm font-medium transition-colors ${
+                    activeQueue === "All"
+                      ? "border-border border-b-transparent bg-background text-primary -mb-px"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {tab.label}
-                  {tab.value !== "Completed" && (
-                    <span
-                      className={`ml-1.5 rounded-full px-1.5 py-px text-[11px] font-semibold ${
-                        activeQueue === tab.value
-                          ? "bg-primary/10 text-primary"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                      aria-hidden="true"
-                    >
-                      {queueCounts[tab.value] ?? 0}
-                    </span>
-                  )}
+                  All
+                  <span
+                    className={`ml-1.5 rounded-full px-1.5 py-px text-[11px] font-semibold ${
+                      activeQueue === "All" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {queueCounts.All ?? 0}
+                  </span>
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                <p>{tab.tip}</p>
+                <p>All open (non-completed) title files.</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-        ))}
-      </div>
+
+          <div className="flex min-w-0 flex-col items-center gap-1 rounded-lg border border-border/80 bg-muted/15 px-2 py-1.5 sm:px-2.5">
+            <p className="w-full text-center text-[11px] font-semibold uppercase tracking-wider text-primary">
+              Action
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-1">
+              {REPO_ACTION_NAV.map((id) => (
+                <TooltipProvider key={id} delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        aria-current={activeQueue === id ? "page" : undefined}
+                        aria-label={`${REPO_QUEUE_LABELS[id]}, ${queueCounts[id] ?? 0} files`}
+                        onClick={() => {
+                          setActiveQueue(id)
+                          setRowSelection({})
+                        }}
+                        className={`relative rounded-t-md border border-transparent px-3 py-2 text-sm font-medium transition-colors ${
+                          activeQueue === id
+                            ? "border-border border-b-transparent bg-background text-primary -mb-px"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {REPO_QUEUE_LABELS[id]}
+                        <span
+                          className={`ml-1.5 rounded-full px-1.5 py-px text-[11px] font-semibold ${
+                            activeQueue === id ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {queueCounts[id] ?? 0}
+                        </span>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs">
+                      <p>{REPO_QUEUE_TIPS[id]}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex min-w-0 flex-col items-center gap-1 rounded-lg border border-border/80 bg-muted/15 px-2 py-1.5 sm:px-2.5">
+            <p className="w-full text-center text-[11px] font-semibold uppercase tracking-wider text-primary">
+              Hold
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-1">
+              {REPO_HOLD_QUEUE_IDS.map((id) => (
+                <TooltipProvider key={id} delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        aria-current={activeQueue === id ? "page" : undefined}
+                        aria-label={`${REPO_QUEUE_LABELS[id]}, ${queueCounts[id] ?? 0} files`}
+                        onClick={() => {
+                          setActiveQueue(id)
+                          setRowSelection({})
+                        }}
+                        className={`relative rounded-t-md border border-transparent px-3 py-2 text-sm font-medium transition-colors ${
+                          activeQueue === id
+                            ? "border-border border-b-transparent bg-background text-primary -mb-px"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {REPO_QUEUE_LABELS[id]}
+                        <span
+                          className={`ml-1.5 rounded-full px-1.5 py-px text-[11px] font-semibold ${
+                            activeQueue === id ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {queueCounts[id] ?? 0}
+                        </span>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs">
+                      <p>{REPO_QUEUE_TIPS[id]}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ))}
+            </div>
+          </div>
+
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  aria-current={activeQueue === "Completed" ? "page" : undefined}
+                  aria-label={`Completed, ${queueCounts.Completed ?? 0} files`}
+                  onClick={() => {
+                    setActiveQueue("Completed")
+                    setRowSelection({})
+                  }}
+                  className={`relative rounded-t-md border border-transparent px-3 py-2 text-sm font-medium transition-colors ${
+                    activeQueue === "Completed"
+                      ? "border-border border-b-transparent bg-background text-primary -mb-px"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Completed
+                  <span
+                    className={`ml-1.5 rounded-full px-1.5 py-px text-[11px] font-semibold ${
+                      activeQueue === "Completed"
+                        ? "bg-primary/10 text-primary"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {queueCounts.Completed ?? 0}
+                  </span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>Non-open account status (if present).</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </nav>
       )}
 
       {queueSystem === "outbound" && (
@@ -645,45 +1093,6 @@ export default function QueuePage() {
         </div>
       )}
 
-      {queueSystem === "repossessions" && activeQueue !== "Completed" && (
-        <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Daily Pull report filters">
-          {DAILY_PULL_TABS.map((tab) => (
-            <TooltipProvider key={tab.value} delayDuration={300}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    role="tab"
-                    aria-selected={activeTab === tab.value}
-                    aria-label={`${tab.label}, ${statusCounts[tab.value] ?? 0} files`}
-                    onClick={() => setActiveTab(tab.value)}
-                    className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${
-                      activeTab === tab.value
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-background text-muted-foreground hover:border-primary hover:text-primary"
-                    }`}
-                  >
-                    {tab.label}
-                    <span
-                      className={`rounded-full px-1.5 py-px text-[11px] font-semibold ${
-                        activeTab === tab.value
-                          ? "bg-primary-foreground/20 text-primary-foreground"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                      aria-hidden="true"
-                    >
-                      {statusCounts[tab.value] ?? 0}
-                    </span>
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  <p>{tab.tip}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          ))}
-        </div>
-      )}
-
       {queueSystem === "repossessions" && (
       <div className="relative max-w-md">
         <IconSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
@@ -707,7 +1116,7 @@ export default function QueuePage() {
       </div>
       )}
 
-      {queueSystem === "repossessions" && (
+      {(queueSystem === "repossessions" || queueSystem === "batch") && (
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
           <Button
@@ -832,7 +1241,8 @@ export default function QueuePage() {
           </TableHeader>
 
           <TableBody>
-            {loading && queueSystem === "repossessions" ? (
+            {((loading && queueSystem === "repossessions") ||
+              (queueSystem === "batch" && batchLoading)) ? (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
                   Loading title queue...
@@ -844,23 +1254,38 @@ export default function QueuePage() {
                   <span role="status" aria-live="polite">
                     {queueSystem === "outbound"
                       ? "No outbound accounts yet. Data for this area will be added when your feeds are ready."
-                      : "No title files match your criteria."}
+                      : queueSystem === "batch" && !batchLoading && batchWorkItems.length === 0
+                        ? "This batch has no items."
+                        : "No title files match your criteria."}
                   </span>
                 </TableCell>
               </TableRow>
             ) : (
-              table.getRowModel().rows.map((row) => (
+              table.getRowModel().rows.map((row) => {
+                const orig = row.original
+                const canOpen = !isBatchWorkItem(orig) || !!orig.title
+                return (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() ? "selected" : undefined}
-                  className="cursor-pointer focus-within:ring-2 focus-within:ring-ring/50"
-                  onClick={() => handleRowClick(row.original.id)}
+                  className={
+                    canOpen
+                      ? "cursor-pointer focus-within:ring-2 focus-within:ring-ring/50"
+                      : "cursor-not-allowed opacity-80"
+                  }
+                  onClick={() => handleRowClick(orig)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") handleRowClick(row.original.id)
+                    if (e.key === "Enter" && canOpen) handleRowClick(orig)
                   }}
-                  tabIndex={0}
-                  role="link"
-                  aria-label={`Open title account ${row.original.account_number} VIN ${row.original.vin}`}
+                  tabIndex={canOpen ? 0 : -1}
+                  role={canOpen ? "link" : undefined}
+                  aria-label={
+                    isBatchWorkItem(orig)
+                      ? orig.title
+                        ? `Open title account ${orig.title.account_number} VIN ${orig.title.vin}`
+                        : `Scan slot ${orig.sequence}, missing title file`
+                      : `Open title account ${orig.account_number} VIN ${orig.vin}`
+                  }
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -868,7 +1293,8 @@ export default function QueuePage() {
                     </TableCell>
                   ))}
                 </TableRow>
-              ))
+                )
+              })
             )}
           </TableBody>
         </Table>
@@ -879,7 +1305,8 @@ export default function QueuePage() {
           <span>
             Page {pageIndex + 1} of {pageCount}
             {" · "}
-            {filteredData.length} file{filteredData.length !== 1 ? "s" : ""}
+            {queueSystem === "batch" ? tableData.length : filteredData.length} file
+            {(queueSystem === "batch" ? tableData.length : filteredData.length) !== 1 ? "s" : ""}
           </span>
           <div className="flex items-center gap-1">
             <Button
@@ -930,22 +1357,28 @@ export default function QueuePage() {
                 <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Selected files
                 </p>
-                {selectedRows.map((r) => (
+                {selectedRows.map((r) => {
+                  const o = r.original
+                  const key = queueTableRowKey(o)
+                  const acct = isBatchWorkItem(o)
+                    ? o.title?.account_number ?? `#${o.sequence} (missing)`
+                    : o.account_number
+                  const vin = isBatchWorkItem(o) ? o.title?.vin ?? o.title_id : o.vin
+                  const assigned = isBatchWorkItem(o) ? o.title?.assigned_to : o.assigned_to
+                  return (
                   <div
-                    key={r.id}
+                    key={key}
                     className="flex items-center gap-2 border-b py-1.5 text-sm last:border-b-0"
                   >
-                    <span className="min-w-[70px] font-semibold text-primary">
-                      #{r.original.id.slice(0, 8)}
-                    </span>
-                    <span className="flex-1 truncate text-xs">{r.original.vin}</span>
-                    {r.original.assigned_to && (
+                    <span className="min-w-[70px] font-semibold text-primary">{acct}</span>
+                    <span className="flex-1 truncate text-xs font-mono">{vin}</span>
+                    {assigned && (
                       <span className="text-xs italic text-muted-foreground">
-                        Currently: {r.original.assigned_to}
+                        Currently: {assigned}
                       </span>
                     )}
                   </div>
-                ))}
+                )})}
               </div>
             )}
           </div>
@@ -970,6 +1403,11 @@ export default function QueuePage() {
               group. Assignment status will update to the default for that group.
             </DialogDescription>
           </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Repo queue tabs (FL, Hold, etc.) are derived from title fields. Changing assignment group here
+            updates RepoTitle workflow data and may not move a row to a different action or hold tab until
+            underlying fields (Daily Pull bucket, state, received date, etc.) align with that queue.
+          </p>
 
           <div className="flex flex-col gap-4 py-2">
             <div className="space-y-2">

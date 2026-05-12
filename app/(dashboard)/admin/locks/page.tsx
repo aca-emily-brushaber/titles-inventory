@@ -29,6 +29,8 @@ import { getTitles, unlockTitle } from "@/lib/services/title.service"
 import { getCurrentUser } from "@/lib/services/user.service"
 import type { TitleRow } from "@/lib/titles/types"
 import { ASSIGNMENT_GROUP_LABELS } from "@/lib/titles/assignment-group-copy"
+import { deriveRepoQueue } from "@/lib/titles/repo-queues"
+import { REPO_QUEUE_LABELS } from "@/lib/titles/repo-queue-copy"
 import type { AuthUser } from "@/lib/data-provider"
 
 import { Badge } from "@/components/ui/badge"
@@ -154,6 +156,17 @@ export default function LockedTitlesPage() {
           </Badge>
         ),
         size: 160,
+      },
+      {
+        id: "repo_queue",
+        accessorFn: (row) => deriveRepoQueue(row),
+        header: "Repo queue",
+        cell: ({ row }) => (
+          <Badge variant="secondary" className="text-xs font-medium">
+            {REPO_QUEUE_LABELS[deriveRepoQueue(row.original)]}
+          </Badge>
+        ),
+        size: 120,
       },
       {
         accessorKey: "locked_by",

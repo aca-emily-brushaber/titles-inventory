@@ -29,6 +29,7 @@ import { TitleActions } from "@/components/title/title-actions"
 import { cn } from "@/lib/utils"
 import { ageDaysFromDate } from "@/lib/titles/age-days"
 import { getTitleById, getTitleTransfers } from "@/lib/services/title.service"
+import { deriveRepoQueue } from "@/lib/titles/repo-queues"
 
 type DocumentRow = Database["public"]["Tables"]["documents"]["Row"]
 
@@ -141,7 +142,10 @@ export function TitleDetailClient({
     <header className="bg-background/60 backdrop-blur-md border-b border-border px-4 lg:px-8 pt-4 pb-3 shrink-0">
       <div className="flex items-start gap-3 max-w-[1600px] mx-auto">
         <Button variant="ghost" size="icon" className="size-8 mt-0.5 shrink-0" asChild>
-          <Link href={`/queue?queue=${titleLive.assignment_group}`} aria-label="Back to queue">
+          <Link
+            href={`/queue?queue=${titleLive.status === "Completed" ? "Completed" : deriveRepoQueue(titleLive)}`}
+            aria-label="Back to queue"
+          >
             <IconArrowLeft className="size-4" />
           </Link>
         </Button>

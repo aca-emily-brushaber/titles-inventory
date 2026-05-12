@@ -47,15 +47,33 @@ Not shown on the same timeline (but available on the page or for future wiring):
 
 ## Daily Pull report (`TitleRow.daily_pull_bucket`)
 
-The queue’s second row of filters follows sheet groups from [`data/Titles Daily Pull Report.xlsx`](../data/Titles%20Daily%20Pull%20Report.xlsx). Canonical ids and merged sheets are defined in [`lib/titles/daily-pull-filters.ts`](../lib/titles/daily-pull-filters.ts) (for example REPO AFFIDAVIT STATES 1–3 → `repo_affidavit`; REPO FLIPPED GREER DMV INITIAL and FINAL → `repo_flip_greer_dmv`).
+Sheet groups from [`data/Titles Daily Pull Report.xlsx`](../data/Titles%20Daily%20Pull%20Report.xlsx) populate this field. Canonical ids and merged sheets are defined in [`lib/titles/daily-pull-filters.ts`](../lib/titles/daily-pull-filters.ts) (for example REPO AFFIDAVIT STATES 1–3 → `repo_affidavit`; REPO FLIPPED GREER DMV INITIAL and FINAL → `repo_flip_greer_dmv`).
 
-`npm run generate:titles` cross-references **Account Number** (normalized digits) on each workbook sheet with the RepoTitle CSV: each account is assigned the bucket for the sheet it appears on (workbook sheet order wins if an account appears on multiple sheets). Accounts present in RepoTitle but **not** on any Daily Pull sheet get `daily_pull_bucket: null` and only appear when the queue filter **All** is selected (not on a named Daily Pull tab). Parsing uses the OOXML inside the xlsx (`scripts/generate-titles-seed.mjs`); the **Manual Repo Tile Requests** sheet uses the same **Account Number** header in a different column (detection is by header cell, not fixed column).
+`npm run generate:titles` cross-references **Account Number** (normalized digits) on each workbook sheet with the RepoTitle CSV: each account is assigned the bucket for the sheet it appears on (workbook sheet order wins if an account appears on multiple sheets). Accounts present in RepoTitle but **not** on any Daily Pull sheet get `daily_pull_bucket: null`. The Repossessions queue no longer exposes a separate Daily Pull chip row; buckets still drive **PAR** and **FL** in [`deriveRepoQueue`](../lib/titles/repo-queues.ts) (see below). Titles that only match **Other** or null bucket semantics appear under the derived **Other** or **All** views, not under missing named pull tabs. Parsing uses the OOXML inside the xlsx (`scripts/generate-titles-seed.mjs`); the **Manual Repo Tile Requests** sheet uses the same **Account Number** header in a different column (detection is by header cell, not fixed column).
 
 A production backend should populate this field from the same report or warehouse using the same account-to-bucket rules.
 
+## Repossessions repo queues (derived)
+
+The UI assigns each open Repossessions title to a **derived** queue id for tabs, counts, and deep links (`?queue=` on `/queue`). There is no persisted `repo_queue` column; implementors should mirror [`lib/titles/repo-queues.ts`](../lib/titles/repo-queues.ts) `deriveRepoQueue` in SQL/API or precompute a column that matches it.
+
+**Queue ids:** `FL`, `MO`, `PAR`, `Manheim`, `Other` (action family), `Hold`, `NotReceived` (hold family).
+
+**Precedence (first match wins):**
+
+1. **Hold** — `status === "Hold"`
+2. **NotReceived** — `title_received_date` is null and `status !== "Completed"`
+3. **Manheim** — `auction_name` contains `"manheim"` (case-insensitive substring)
+4. **PAR** — `daily_pull_bucket === "repo_flip_par"`
+5. **FL** — `daily_pull_bucket === "repo_flip_fl"`
+6. **MO** — `title_state` trimmed, uppercased, equals `"MO"`
+7. **Other** — no other rule matched (includes Greer DMV, affidavit, reinstated, manual repo tile, and other `daily_pull_bucket` values; null bucket alone does not force Other until prior rules fail)
+
+**Hold reason (display only):** until a dedicated CSV column exists, the queue table and detail use `deriveHoldReasonDisplay`: prefers `recovery_status` and `assignment_status` (both shown if distinct).
+
 ## Assignment groups (`lib/titles/assignment-groups.ts`)
 
-Raw `assignment_status` values are grouped for tabs and transfers:
+Raw `assignment_status` values are grouped for bulk transfer destinations, history, and related displays. Repossessions primary queue tabs use **derived repo queues** (above), not assignment groups:
 
 | Group id | Typical assignment_status values |
 |----------|----------------------------------|

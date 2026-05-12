@@ -3,6 +3,8 @@
 import { cn } from "@/lib/utils"
 import type { TitleRow } from "@/lib/titles/types"
 import { ASSIGNMENT_GROUP_LABELS } from "@/lib/titles/assignment-group-copy"
+import { deriveRepoQueue } from "@/lib/titles/repo-queues"
+import { REPO_QUEUE_LABELS } from "@/lib/titles/repo-queue-copy"
 import { ageDaysFromDate } from "@/lib/titles/age-days"
 import { formatTransferWhen } from "@/lib/titles/title-timeline"
 import { SectionHelp } from "@/components/section-help"
@@ -26,6 +28,7 @@ export function TitleFieldGrid({ title }: TitleFieldGridProps) {
     { label: "Account status", value: title.account_status },
     { label: "Assignment status", value: title.assignment_status },
     { label: "Assignment group", value: ASSIGNMENT_GROUP_LABELS[title.assignment_group] },
+    { label: "Repo queue", value: REPO_QUEUE_LABELS[deriveRepoQueue(title)] },
     { label: "Client age (days)", value: title.client_age != null ? String(title.client_age) : "—" },
     { label: "Title received", value: fmtDate(title.title_received_date) },
     { label: "Title location", value: title.title_location ?? "—", mono: true },

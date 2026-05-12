@@ -3,7 +3,7 @@
 import { Suspense } from "react"
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
-import { IconCar, IconArrowBarRight } from "@tabler/icons-react"
+import { IconCar, IconArrowBarRight, IconPackages } from "@tabler/icons-react"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -24,9 +24,12 @@ function NavQueueSystemsInner() {
   const searchParams = useSearchParams()
   const onQueue = pathname === "/queue"
   const isOutbound = searchParams.get("system") === "outbound"
+  const isBatchQueue = searchParams.get("system") === "batch"
+  const onBatches = pathname === "/batches" || pathname.startsWith("/batches/")
 
-  const repoActive = onQueue && !isOutbound
+  const repoActive = onQueue && !isOutbound && !isBatchQueue
   const outboundActive = onQueue && isOutbound
+  const batchesActive = onBatches || (onQueue && isBatchQueue)
 
   return (
     <SidebarGroup className="pt-3">
@@ -64,6 +67,22 @@ function NavQueueSystemsInner() {
               <Link href={OUTBOUND_DEFAULT}>
                 <IconArrowBarRight className={`size-4 shrink-0 ${outboundActive ? "text-primary" : ""}`} />
                 <span>Outbound</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              tooltip="Document batches"
+              isActive={batchesActive}
+              className={[
+                "transition-all duration-150 bg-transparent hover:bg-transparent hover:ring-1 hover:ring-border rounded-md",
+                batchesActive ? activeRing : "",
+              ].join(" ")}
+            >
+              <Link href="/batches">
+                <IconPackages className={`size-4 shrink-0 ${batchesActive ? "text-primary" : ""}`} />
+                <span>Document batches</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -111,6 +130,19 @@ function NavQueueSystemsFallback() {
               <Link href={OUTBOUND_DEFAULT}>
                 <IconArrowBarRight className="size-4 shrink-0" />
                 <span>Outbound</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              tooltip="Document batches"
+              isActive={false}
+              className="transition-all duration-150 bg-transparent hover:bg-transparent hover:ring-1 hover:ring-border rounded-md"
+            >
+              <Link href="/batches">
+                <IconPackages className="size-4 shrink-0" />
+                <span>Document batches</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

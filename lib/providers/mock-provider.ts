@@ -10,6 +10,7 @@ import {
   mockTitleComments,
   mockTitleDocuments,
 } from './title-mock-data'
+import { mockDocumentBatches, mockDocumentBatchItems } from './document-batch-mock-data'
 import type { TitleRow } from '../titles/types'
 
 let users = [...mockUsers]
@@ -45,6 +46,31 @@ function titleDateKey(t: TitleRow): string {
 }
 
 export const mockProvider: DataProvider = {
+  documentBatches: {
+    async listBatches() {
+      return [...mockDocumentBatches].sort((a, b) => b.created_at.localeCompare(a.created_at))
+    },
+    async getBatch(batchId: string) {
+      const batch = mockDocumentBatches.find((b) => b.id === batchId)
+      if (!batch) return null
+      const items = mockDocumentBatchItems
+        .filter((i) => i.batch_id === batchId)
+        .sort((a, b) => a.sequence - b.sequence)
+      return { batch, items }
+    },
+    async getBatchWorkItemsOrdered(batchId: string) {
+      const titleById = new Map(titles.map((t) => [t.id, t]))
+      const items = mockDocumentBatchItems
+        .filter((i) => i.batch_id === batchId)
+        .sort((a, b) => a.sequence - b.sequence)
+      return items.map((i) => ({
+        sequence: i.sequence,
+        title_id: i.title_id,
+        title: titleById.get(i.title_id) ?? null,
+      }))
+    },
+  },
+
   titles: {
     async getAll() {
       return titles
